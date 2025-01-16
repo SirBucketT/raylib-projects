@@ -4,6 +4,7 @@
 int circleX = 900;
 int circleY = 450;
 int movementSpeed = 20;
+bool isAlive = true;
 
 int main(void) {
 
