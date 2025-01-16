@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "raylib.h"
 
-float screenWidth = 1800;
-float screenHeight = 900;
+const float screenWidth = 1800;
+const float screenHeight = 900;
 
 float playerX;
 float playerY;
@@ -32,7 +32,7 @@ int main(void) {
 
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
-        } else if (IsKeyDown(KEY_D) && playerX + screenWidth / 15 < screenWidth) {
+        } else if (IsKeyDown(KEY_D) && playerX + screenWidth / 20 < screenWidth) {
             playerX += movementSpeed;
         }
 
