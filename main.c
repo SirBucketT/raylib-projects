@@ -13,6 +13,29 @@ bool isAlive = true;
 bool bulletActive = false;
 bool gameStarted = false;
 
+void initializeBlocks(){
+    DrawRectangle(500, 50, screenWidth / 2, screenHeight/50, RED);
+}
+
+void InitializeGame() {
+    if (!gameStarted) {
+        DrawText("START GAME (Y/N)", screenWidth / 2 - 250, screenHeight / 2, 50, WHITE);
+
+        int key = GetKeyPressed();
+        switch (key) {
+            case KEY_Y:
+                gameStarted = true;
+            isAlive = true;
+            break;
+            case KEY_N:
+                CloseWindow();
+            break;
+            default:
+                break;
+        }
+    }
+}
+
 int main(void) {
 
     screenSpace = screenHeight - (screenHeight / 25) - 30;
@@ -32,22 +55,7 @@ int main(void) {
         BeginDrawing();
 
         //game menu
-        if (!gameStarted) {
-            DrawText("START GAME (Y/N)", screenWidth / 2 - 250, screenHeight / 2, 50, WHITE);
-
-            int key = GetKeyPressed();
-            switch (key) {
-                case KEY_Y:
-                    gameStarted = true;
-                isAlive = true;
-                break;
-                case KEY_N:
-                    CloseWindow();
-                break;
-                default:
-                break;
-            }
-        }
+        InitializeGame();
 
         //player movement and logic
         if (IsKeyDown(KEY_A) && playerX > 0) {
@@ -88,6 +96,13 @@ int main(void) {
         } else if (!isAlive && gameStarted == true) {
             DrawText("GAME OVER!", screenWidth / 2 - 100, screenHeight / 2, 50, RED);
         }
+
+        //block logic
+        if (bulletActive == true && gameStarted == true && isAlive == true) {
+            initializeBlocks();
+        }
+
+
 
         ClearBackground(BLACK);
         EndDrawing();
