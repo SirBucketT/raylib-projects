@@ -49,6 +49,7 @@ int main(void) {
             }
         }
 
+        //player movement and logic
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
         } else if (IsKeyDown(KEY_D) && playerX + screenWidth / 20 < screenWidth) {
