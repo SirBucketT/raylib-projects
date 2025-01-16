@@ -13,6 +13,7 @@ int main(void) {
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
+        DrawCircle()
         EndDrawing();
     }
 
