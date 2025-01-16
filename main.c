@@ -6,12 +6,8 @@ int playerY;
 int screenSpace;
 int movementSpeed = 70;
 
-int width;
-int height;
-
 bool isAlive = true;
 bool bulletActive = false;
-bool gameOver = false;
 
 int main(void) {
 
@@ -22,7 +18,7 @@ int main(void) {
     playerY = screenSpace;
     float bulletX = playerX + 40;
     float bulletY = playerY -40;
-    float bulletSpeedX = -40;
+    float bulletSpeedX = -10;
     float bulletSpeedY = bulletSpeedX;
     int bulletRadius = 5;
 
@@ -31,14 +27,15 @@ int main(void) {
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
+        BeginDrawing();
 
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
-        } else if (IsKeyDown(KEY_D) && playerX + screenWidth / 25 < screenWidth) {
+        } else if (IsKeyDown(KEY_D) && playerX + screenWidth / 15 < screenWidth) {
             playerX += movementSpeed;
         }
 
-        if (IsKeyPressed(KEY_SPACE) && !bulletActive) {
+        if (IsKeyPressed(KEY_SPACE) && !bulletActive && isAlive == true) {
             bulletX = playerX + screenWidth / 50;
             bulletY = playerY;
             bulletActive = true;
@@ -61,13 +58,16 @@ int main(void) {
             }
         }
 
+        if (CheckCollisionCircleRec((Vector2){bulletX, bulletY}, bulletRadius, (Rectangle){playerX, playerY, screenWidth / 15, screenHeight / 50})) {
+            bulletSpeedY *= -1;
+        }
+
         if (isAlive == true) {
-            DrawRectangle(playerX, playerY, screenWidth / 25, screenHeight/50, WHITE);
+            DrawRectangle(playerX, playerY, screenWidth / 20, screenHeight/50, WHITE);
         } else {
             DrawText("GAME OVER!", screenWidth / 2 - 100, screenHeight / 2, 50, RED);
         }
 
-        BeginDrawing();
         ClearBackground(BLACK);
         EndDrawing();
     }
