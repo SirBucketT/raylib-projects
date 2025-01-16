@@ -3,9 +3,9 @@
 # No other meaning or use of this file is supported.
 
 method=git
-command=/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;/Users/omega/raylib-projects/cmake-build-debug/CMakeFiles/fc-tmp/raylib/raylib-gitclone.cmake
-source_dir=/Users/omega/raylib-projects/cmake-build-debug/_deps/raylib-src
-work_dir=/Users/omega/raylib-projects/cmake-build-debug/_deps
+command=C:/Program Files/JetBrains/CLion 2024.3.1.1/bin/cmake/win/x64/bin/cmake.exe;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;C:/Projects/raylib-projects/cmake-build-debug/CMakeFiles/fc-tmp/raylib/raylib-gitclone.cmake
+source_dir=C:/Projects/raylib-projects/cmake-build-debug/_deps/raylib-src
+work_dir=C:/Projects/raylib-projects/cmake-build-debug/_deps
 repository=https://github.com/raysan5/raylib.git
 remote=origin
 init_submodules=TRUE

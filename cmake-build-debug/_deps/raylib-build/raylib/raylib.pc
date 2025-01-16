@@ -1,4 +1,4 @@
-prefix=/usr/local
+prefix=C:/Program Files (x86)/raylib_projects
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
@@ -6,8 +6,8 @@ includedir=${prefix}/include
 Name: raylib
 Description: A simple and easy-to-use library to enjoy videogames programming
 URL: https://github.com/raysan5/raylib
-Version: 5.5.0
+Version: 4.2.0
 Libs: -L"${libdir}" -lraylib 
-Libs.private: 
+Libs.private: -lglfw
 Requires.private: 
 Cflags: -I"${includedir}"

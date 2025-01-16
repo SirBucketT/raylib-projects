@@ -1,14 +1,14 @@
-if(NOT EXISTS "/Users/omega/raylib-projects/cmake-build-debug/install_manifest.txt")
-  message(FATAL_ERROR "Cannot find install manifest: /Users/omega/raylib-projects/cmake-build-debug/install_manifest.txt")
+if(NOT EXISTS "C:/Projects/raylib-projects/cmake-build-debug/install_manifest.txt")
+  message(FATAL_ERROR "Cannot find install manifest: C:/Projects/raylib-projects/cmake-build-debug/install_manifest.txt")
 endif()
 
-file(READ "/Users/omega/raylib-projects/cmake-build-debug/install_manifest.txt" files)
+file(READ "C:/Projects/raylib-projects/cmake-build-debug/install_manifest.txt" files)
 string(REGEX REPLACE "\n" ";" files "${files}")
 foreach(file ${files})
   message(STATUS "Uninstalling $ENV{DESTDIR}${file}")
   if(IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
     exec_program(
-      "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake" ARGS "-E remove \"$ENV{DESTDIR}${file}\""
+      "C:/Program Files/JetBrains/CLion 2024.3.1.1/bin/cmake/win/x64/bin/cmake.exe" ARGS "-E remove \"$ENV{DESTDIR}${file}\""
       OUTPUT_VARIABLE rm_out
       RETURN_VALUE rm_retval
       )
