@@ -32,13 +32,20 @@ int main(void) {
         BeginDrawing();
 
         //game menu
-        if (gameStarted == false) {
-            DrawText("START GAME (Y/N)", screenWidth / 2 -250, screenHeight / 2, 50, WHITE);
-            if (IsKeyDown(KEY_Y)) {
-                gameStarted = true;
+        if (!gameStarted) {
+            DrawText("START GAME (Y/N)", screenWidth / 2 - 250, screenHeight / 2, 50, WHITE);
+
+            int key = GetKeyPressed();
+            switch (key) {
+                case KEY_Y:
+                    gameStarted = true;
                 isAlive = true;
-            } else if (IsKeyDown(KEY_N)) {
-                CloseWindow();
+                break;
+                case KEY_N:
+                    CloseWindow();
+                break;
+                default:
+                break;
             }
         }
 
