@@ -32,7 +32,6 @@ void gameOverCheck() {
 void InitializeGame() {
     if (!gameStarted) {
         DrawText("START GAME (Y/N)", screenWidth / 2 - 250, screenHeight / 2, 50, WHITE);
-
         int key = GetKeyPressed();
         switch (key) {
             case KEY_Y:
@@ -102,7 +101,7 @@ int main(void) {
         if (CheckCollisionCircleRec((Vector2){bulletX, bulletY}, bulletRadius, (Rectangle){playerX, playerY, screenWidth / 15, screenHeight / 50})) {
             bulletSpeedY *= -1;
         }
-        
+
         gameOverCheck();
 
         ClearBackground(BLACK);
