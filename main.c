@@ -49,6 +49,7 @@ int main(void) {
     float bulletSpeedX = -10;
     float bulletSpeedY = bulletSpeedX;
     int blockSize = screenWidth / 20;
+    int blockLine1 = 50;
 
 
     InitWindow(screenWidth, screenHeight, "useless raylib");
@@ -96,7 +97,7 @@ int main(void) {
         }
         //block logic
         if (bulletActive == true && gameStarted == true && isAlive == true) {
-            DrawRectangle(500, 50, blockSize, screenHeight/50, RED);
+            DrawRectangle(500, blockLine1, blockSize, screenHeight/50, RED);
         }
 
         gameOverCheck();
