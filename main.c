@@ -58,8 +58,6 @@ int main(void) {
     while (!WindowShouldClose()) {
         const float bulletRadius = 5;
         BeginDrawing();
-
-        //game menu
         InitializeGame();
 
         //player movement and logic
