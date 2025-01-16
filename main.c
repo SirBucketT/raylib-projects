@@ -16,6 +16,18 @@ bool gameStarted = false;
 void initializeBlocks(){
     DrawRectangle(500, 50, screenWidth / 2, screenHeight/50, RED);
 }
+void gameOverCheck() {
+    if (isAlive == true && gameStarted == true) {
+        DrawRectangle(playerX, playerY, screenWidth / 20, screenHeight/50, WHITE);
+    } else if (!isAlive && gameStarted == true) {
+        DrawText("GAME OVER!", screenWidth / 2 - 100, screenHeight / 2, 50, RED);
+    }
+
+    //block logic
+    if (bulletActive == true && gameStarted == true && isAlive == true) {
+        initializeBlocks();
+    }
+}
 
 void InitializeGame() {
     if (!gameStarted) {
@@ -90,19 +102,8 @@ int main(void) {
         if (CheckCollisionCircleRec((Vector2){bulletX, bulletY}, bulletRadius, (Rectangle){playerX, playerY, screenWidth / 15, screenHeight / 50})) {
             bulletSpeedY *= -1;
         }
-
-        if (isAlive == true && gameStarted == true) {
-            DrawRectangle(playerX, playerY, screenWidth / 20, screenHeight/50, WHITE);
-        } else if (!isAlive && gameStarted == true) {
-            DrawText("GAME OVER!", screenWidth / 2 - 100, screenHeight / 2, 50, RED);
-        }
-
-        //block logic
-        if (bulletActive == true && gameStarted == true && isAlive == true) {
-            initializeBlocks();
-        }
-
-
+        
+        gameOverCheck();
 
         ClearBackground(BLACK);
         EndDrawing();
