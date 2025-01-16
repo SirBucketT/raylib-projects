@@ -1,18 +1,19 @@
 #include <stdio.h>
 #include "raylib.h"
 
-int playerX;
-int playerY;
-int screenSpace;
-int movementSpeed = 70;
+float screenWidth = 1800;
+float screenHeight = 900;
+
+float playerX;
+float playerY;
+float screenSpace;
+float movementSpeed = 70;
 
 bool isAlive = true;
 bool bulletActive = false;
 
 int main(void) {
 
-    const int screenWidth = 1800;
-    const int screenHeight = 900;
     screenSpace = screenHeight - (screenHeight / 25) - 30;
     playerX = screenWidth / 2;
     playerY = screenSpace;
@@ -20,13 +21,13 @@ int main(void) {
     float bulletY = playerY -40;
     float bulletSpeedX = -10;
     float bulletSpeedY = bulletSpeedX;
-    int bulletRadius = 5;
 
 
     InitWindow(screenWidth, screenHeight, "useless raylib");
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
+        const float bulletRadius = 5;
         BeginDrawing();
 
         if (IsKeyDown(KEY_A) && playerX > 0) {
