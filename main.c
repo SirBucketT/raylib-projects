@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include "raylib.h"
 
+int circleX = 50;
+int circleY = 50;
+
 int main(void) {
 
     const int screenWidth = 800;
@@ -13,7 +16,7 @@ int main(void) {
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        DrawCircle()
+        DrawCircle(circleX, circleY, 20, GRAY);
         EndDrawing();
     }
 
