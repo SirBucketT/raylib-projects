@@ -11,6 +11,7 @@ float movementSpeed = 70;
 
 bool isAlive = true;
 bool bulletActive = false;
+bool gameStarted = false;
 
 int main(void) {
 
@@ -29,6 +30,17 @@ int main(void) {
     while (!WindowShouldClose()) {
         const float bulletRadius = 5;
         BeginDrawing();
+
+        //game menu
+        if (gameStarted == false) {
+            DrawText("START GAME (Y/N)", screenWidth / 2 -250, screenHeight / 2, 50, WHITE);
+            if (IsKeyDown(KEY_Y)) {
+                gameStarted = true;
+                isAlive = true;
+            } else if (IsKeyDown(KEY_N)) {
+                CloseWindow();
+            }
+        }
 
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
@@ -63,9 +75,9 @@ int main(void) {
             bulletSpeedY *= -1;
         }
 
-        if (isAlive == true) {
+        if (isAlive == true && gameStarted == true) {
             DrawRectangle(playerX, playerY, screenWidth / 20, screenHeight/50, WHITE);
-        } else {
+        } else if (!isAlive && gameStarted == true) {
             DrawText("GAME OVER!", screenWidth / 2 - 100, screenHeight / 2, 50, RED);
         }
 
