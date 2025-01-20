@@ -28,6 +28,16 @@ typedef struct {
     Color color; 
 } Block;
 
+const int KONAMI_CODE[] = {
+    KEY_UP, KEY_UP, KEY_DOWN, KEY_DOWN,
+    KEY_LEFT, KEY_RIGHT, KEY_LEFT, KEY_RIGHT,
+    KEY_B, KEY_A
+};
+const int KONAMI_CODE_LENGTH = 10;
+
+int playerInput[10];
+int konamiIndex = 0;
+
 
 ScoreData player = {3, 0.0f, 0.0f};
 
@@ -121,6 +131,31 @@ void InitializeGame() {
     }
 }
 
+bool IsAnyKeyPressed() {
+    for (int key = KEY_SPACE; key <= KEY_KP_9; key++) {
+        if (IsKeyPressed(key)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Upgrades() {
+    if (player.currentScore > 1500) {
+        player.healthPoints += 1;
+    }
+
+    if (IsKeyPressed(KONAMI_CODE[konamiIndex])) {
+        konamiIndex++;
+        if (konamiIndex == KONAMI_CODE_LENGTH) {
+            player.healthPoints = OVER9000;
+            konamiIndex = 0;
+        }
+    } else if (IsAnyKeyPressed()) {
+        konamiIndex = 0;
+    }
+}
+
 void GameOver() {
     if (!isAlive && gameStarted) {
         DrawText("GAME OVER!", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2, 50, RED);
@@ -147,7 +182,7 @@ int main(void) {
     ballSpeedY = -ballSpeed;
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block Game");
-    SetTargetFPS(OVER9000);
+    SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -161,6 +196,7 @@ int main(void) {
         if (player.currentScore > player.highscore) {
             player.highscore = player.currentScore;
         }
+        Upgrades();
 
         sprintf(highscore, "Highscore: %.0f", player.highscore);
         DrawText(highscore, SCREEN_WIDTH - 400, SCREEN_HEIGHT - 100, 50, WHITE);
