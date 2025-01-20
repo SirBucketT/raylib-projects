@@ -103,19 +103,6 @@ void CheckBulletCollision(float bulletX, float bulletY, float bulletRadius, Scor
     }
 }
 
-
-void GameOverCheck() {
-    if (!isAlive && gameStarted) {
-        DrawText("GAME OVER!", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2, 50, RED);
-        DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH / 2 - 300, SCREEN_HEIGHT -300, 50, WHITE);
-        if (IsKeyDown(KEY_Y)) {
-            GameStarter();
-        } else if (IsKeyDown(KEY_N)) {
-            CloseWindow();
-        }
-    }
-}
-
 void InitializeGame() {
     if (!gameStarted) {
         DrawText("START GAME (Y/N)", SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT / 2, 50, WHITE);
@@ -129,6 +116,18 @@ void InitializeGame() {
                 break;
             default:
                 break;
+        }
+    }
+}
+
+void GameOver() {
+    if (!isAlive && gameStarted) {
+        DrawText("GAME OVER!", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2, 50, RED);
+        DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH / 2 - 300, SCREEN_HEIGHT -300, 50, WHITE);
+        if (IsKeyDown(KEY_Y)) {
+            GameStarter();
+        } else if (IsKeyDown(KEY_N)) {
+            CloseWindow();
         }
     }
 }
@@ -222,7 +221,7 @@ int main(void) {
 
         if (player.healthPoints <= 0) {
             isAlive = false;
-            GameOverCheck();
+            GameOver();
         }
 
         EndDrawing();
