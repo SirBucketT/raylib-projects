@@ -157,12 +157,14 @@ int main(void) {
         sprintf(currentScore, " %.0f", player.currentScore);
         DrawText(currentScore, SCREEN_WIDTH / 2 - 155, SCREEN_HEIGHT - 880, 50, WHITE);
 
-        if (player.currentScore >= player.healthPoints) {
+        if (player.currentScore >= player.highscore) {
             player.highscore = player.currentScore;
         }
 
         sprintf(highscore, "Highscore: %.0f", player.highscore);
         DrawText(highscore, SCREEN_WIDTH - 400, SCREEN_HEIGHT - 880, 50, WHITE);
+        sprintf(playerLives, "Lives: %.0f", player.healthPoints);
+        DrawText(playerLives, SCREEN_WIDTH -1700, SCREEN_HEIGHT - 880, 50, WHITE);
 
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
