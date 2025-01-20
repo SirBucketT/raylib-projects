@@ -21,6 +21,8 @@ typedef struct {
     bool active;
 } Block;
 
+ScoreData player = {3, 0.0f, 0.0f};
+
 bool isAlive = true;
 bool bulletActive = false;
 bool gameStarted = false;
@@ -40,6 +42,13 @@ void InitializeBlocks() {
         blocks[i].health = 3;
         blocks[i].active = true;
     }
+}
+
+void GameStarter() {
+    player.healthPoints = 3;
+    gameStarted = true;
+    isAlive = true;
+    InitializeBlocks();
 }
 
 void DrawBlocks() {
@@ -69,6 +78,12 @@ void CheckBulletCollision(float bulletX, float bulletY, float bulletRadius, Scor
 void GameOverCheck() {
     if (!isAlive && gameStarted) {
         DrawText("GAME OVER!", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2, 50, RED);
+        DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT -150, 50, WHITE);
+        if (IsKeyDown(KEY_Y)) {
+            GameStarter();
+        } else if (IsKeyDown(KEY_N)) {
+            CloseWindow();
+        }
     }
 }
 
@@ -78,9 +93,7 @@ void InitializeGame() {
         int key = GetKeyPressed();
         switch (key) {
             case KEY_Y:
-                gameStarted = true;
-                isAlive = true;
-                InitializeBlocks();
+                GameStarter();
                 break;
             case KEY_N:
                 CloseWindow();
@@ -105,8 +118,6 @@ int main(void) {
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raylib Block Game");
     SetTargetFPS(60);
-
-    ScoreData player = {3, 0.0f, 0.0f};
 
     while (!WindowShouldClose()) {
         BeginDrawing();
