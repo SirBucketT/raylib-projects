@@ -3,9 +3,9 @@
 
 #define SCREEN_WIDTH 1800
 #define SCREEN_HEIGHT 900
-#define MAX_BLOCKS (ROWS * COLUMNS)
 #define ROWS 5
 #define COLUMNS 10
+#define MAX_BLOCKS (ROWS * COLUMNS)
 #define BLOCK_WIDTH 100
 #define BLOCK_HEIGHT 30
 #define BLOCK_SPACING 10
@@ -69,6 +69,7 @@ void InitializeBlocks() {
 
 void GameStarter() {
     player.healthPoints = 3;
+    player.currentScore = 0;
     gameStarted = true;
     isAlive = true;
     InitializeBlocks();
@@ -137,8 +138,9 @@ int main(void) {
     float ballX = playerX + 40;
     float ballY = playerY - 40;
     const float ballRadius = 8;
-    char highscoreText[50];
-    char playerLives[1];
+    char currentScore[50];
+    char highscore[50];
+    char playerLives[10];
 
     ballSpeedX = ballSpeed;
     ballSpeedY = -ballSpeed;
@@ -152,12 +154,15 @@ int main(void) {
 
         InitializeGame();
 
-        sprintf(playerLives, "Lives: %i", playerLives);
-        if (player.healthPoints == 3) {
-            DrawText(playerLives, SCREEN_WIDTH, SCREEN_HEIGHT, 50, WHITE);
+        sprintf(currentScore, " %.0f", player.currentScore);
+        DrawText(currentScore, SCREEN_WIDTH / 2 - 155, SCREEN_HEIGHT - 880, 50, WHITE);
+
+        if (player.currentScore >= player.healthPoints) {
+            player.highscore = player.currentScore;
         }
-        sprintf(highscoreText, "Highscore: %.0f", player.currentScore);
-        DrawText(highscoreText, SCREEN_WIDTH / 2 - 155, SCREEN_HEIGHT - 880, 50, WHITE);
+
+        sprintf(highscore, "Highscore: %.0f", player.highscore);
+        DrawText(highscore, SCREEN_WIDTH - 400, SCREEN_HEIGHT - 880, 50, WHITE);
 
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
