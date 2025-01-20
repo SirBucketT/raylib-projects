@@ -66,7 +66,7 @@ void CheckBulletCollision(float bulletX, float bulletY, float bulletRadius, Scor
     }
 }
 
-void gameOverCheck() {
+void GameOverCheck() {
     if (!isAlive && gameStarted) {
         DrawText("GAME OVER!", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2, 50, RED);
     }
@@ -112,10 +112,6 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        if (player.currentScore >= player.highscore) {
-            player.highscore = player.currentScore;
-        }
-
         InitializeGame();
 
         sprintf(playerLives, "Lives: %i", playerLives);
@@ -123,7 +119,7 @@ int main(void) {
             DrawText(playerLives, SCREEN_WIDTH, SCREEN_HEIGHT, 50, WHITE);
         }
         sprintf(highscoreText, "Highscore: %.0f", player.highscore);
-        DrawText(highscoreText, SCREEN_WIDTH / 2, SCREEN_HEIGHT - 880, 50, WHITE);
+        DrawText(highscoreText, SCREEN_WIDTH / 2 - 155, SCREEN_HEIGHT - 880, 50, WHITE);
 
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
@@ -149,6 +145,7 @@ int main(void) {
             ballX += ballSpeedX;
             ballY += ballSpeedY;
 
+            // BALL FRAME COLLISION:
             if (ballX - ballRadius <= 0 || ballX + ballRadius >= SCREEN_WIDTH) {
                 ballSpeedX *= -1;
             }
@@ -157,6 +154,12 @@ int main(void) {
                 ballSpeedY *= -1;
             }
 
+            if (ballY + ballRadius >= SCREEN_HEIGHT) {
+                bulletActive = false;
+                player.healthPoints -= 1; // Game over if ball falls below screen
+            }
+
+            // PLAYER COLLISION:
             Rectangle playerRect = {playerX, playerY, SCREEN_WIDTH / 20, SCREEN_HEIGHT / 50};
             if (CheckCollisionCircleRec((Vector2){ballX, ballY}, ballRadius, playerRect)) {
                 ballSpeedY = -ballSpeed;
@@ -165,22 +168,17 @@ int main(void) {
                 ballSpeedX = (hitPos - 0.5f) * ballSpeed * 2.0f;
             }
 
-            if (ballY + ballRadius >= SCREEN_HEIGHT) {
-                bulletActive = false;
-                player.healthPoints -= 1; // Game over if ball falls below screen
-            }
-
-            DrawCircle(ballX, ballY, ballRadius, WHITE);
-        }
-        if (player.healthPoints <= 0) {
-            isAlive = false;
+            DrawCircle(ballX, ballY, ballRadius, WHITE);    // Draw ball
         }
 
         CheckBulletCollision(ballX, ballY, ballRadius, &player);
 
         DrawBlocks();
 
-        gameOverCheck();
+        if (player.healthPoints <= 0) {
+            isAlive = false;
+            GameOverCheck();
+        }
 
         EndDrawing();
     }
