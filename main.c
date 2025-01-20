@@ -98,7 +98,8 @@ void CheckBulletCollision(float bulletX, float bulletY, float bulletRadius, Scor
             }
             ballSpeedY *= -1; // Bounce the ball vertically
             break;
-            }
+        }
+
     }
 }
 
@@ -106,7 +107,7 @@ void CheckBulletCollision(float bulletX, float bulletY, float bulletRadius, Scor
 void GameOverCheck() {
     if (!isAlive && gameStarted) {
         DrawText("GAME OVER!", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2, 50, RED);
-        DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT -150, 50, WHITE);
+        DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH / 2 - 300, SCREEN_HEIGHT -300, 50, WHITE);
         if (IsKeyDown(KEY_Y)) {
             GameStarter();
         } else if (IsKeyDown(KEY_N)) {
@@ -134,7 +135,7 @@ void InitializeGame() {
 
 int main(void) {
     playerX = SCREEN_WIDTH / 2;
-    playerY = SCREEN_HEIGHT - 50;
+    playerY = SCREEN_HEIGHT - 150;
     float ballX = playerX + 40;
     float ballY = playerY - 40;
     const float ballRadius = 8;
@@ -155,16 +156,16 @@ int main(void) {
         InitializeGame();
 
         sprintf(currentScore, " %.0f", player.currentScore);
-        DrawText(currentScore, SCREEN_WIDTH / 2 - 155, SCREEN_HEIGHT - 880, 50, WHITE);
+        DrawText(currentScore, SCREEN_WIDTH / 2 - 155, SCREEN_HEIGHT - 100, 50, WHITE);
 
-        if (player.currentScore >= player.highscore) {
+        if (player.currentScore > player.highscore) {
             player.highscore = player.currentScore;
         }
 
         sprintf(highscore, "Highscore: %.0f", player.highscore);
-        DrawText(highscore, SCREEN_WIDTH - 400, SCREEN_HEIGHT - 880, 50, WHITE);
+        DrawText(highscore, SCREEN_WIDTH - 400, SCREEN_HEIGHT - 100, 50, WHITE);
         sprintf(playerLives, "Lives: %.0f", player.healthPoints);
-        DrawText(playerLives, SCREEN_WIDTH -1700, SCREEN_HEIGHT - 880, 50, WHITE);
+        DrawText(playerLives, SCREEN_WIDTH -1700, SCREEN_HEIGHT - 100, 50, WHITE);
 
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
