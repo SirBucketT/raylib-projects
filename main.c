@@ -66,6 +66,7 @@ int main(void) {
     float bulletSpeedX = -10;
     float bulletSpeedY = bulletSpeedX;
     char highscoreText[50];
+    char currentScoreText[50];
 
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "useless raylib");
@@ -78,6 +79,7 @@ int main(void) {
         ScoreData player;
 
         sprintf(highscoreText, "Highscore: \n %.0f", player.highscore);
+        sprintf(currentScoreText, "%.0f", player.currentScore);
 
         //player movement and logic
         if (IsKeyDown(KEY_A) && playerX > 0) {
@@ -120,6 +122,7 @@ int main(void) {
         gameOverCheck();
 
         DrawText(highscoreText, SCREEN_WIDTH -350, SCREEN_HEIGHT - 880, 50, WHITE);
+        DrawText(currentScoreText, SCREEN_WIDTH /2, SCREEN_HEIGHT - 880, 50, WHITE);
 
         //score updater
         if (player.currentScore >= player.highscore) {
