@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "raylib.h"
 
-const float screenWidth = 1800;
-const float screenHeight = 900;
+#define SCREEN_WIDTH 1800
+#define SCREEN_HEIGHT 900
 
 float playerX;
 float playerY;
@@ -14,36 +14,36 @@ typedef struct {
     float highscore;
 } playConditions;
 
+typedef struct {
+    int blockSize;
+    int blockLine1;
+}blocks;
+
 
 bool isAlive = true;
 bool bulletActive = false;
 bool gameStarted = false;
 
+void GameGrid() {
+    blocks block = {SCREEN_WIDTH / 20, 50};
+    DrawRectangle(500, block.blockLine1, block.blockSize, SCREEN_HEIGHT/50, RED);
+}
+
 void gameOverCheck() {
     if (isAlive == true && gameStarted == true) {
-        DrawRectangle(playerX, playerY, screenWidth / 20, screenHeight/50, WHITE);
+        DrawRectangle(playerX, playerY, SCREEN_WIDTH / 20, SCREEN_HEIGHT/50, WHITE);
     } else if (!isAlive && gameStarted == true) {
-        DrawText("GAME OVER!", screenWidth / 2 - 100, screenHeight / 2, 50, RED);
+        DrawText("GAME OVER!", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2, 50, RED);
     }
 }
 
 void InitializeGame() {
     if (!gameStarted) {
-        DrawText("START GAME (Y/N)", screenWidth / 2 - 250, screenHeight / 2, 50, WHITE);
+        DrawText("START GAME (Y/N)", SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT / 2, 50, WHITE);
         int key = GetKeyPressed();
         switch (key) {
             case KEY_Y:
-                playConditions player;
                 gameStarted = true;
-                if (player.healthPoints > 0) {
-                    player.healthPoints = 2.0f;
-                }
-                if (player.highscore > 0) {
-                    return;
-                } else if (player.healthPoints == 0) {
-                    player.highscore = 0.0f;
-                }
-
             isAlive = true;
             break;
             case KEY_N:
@@ -57,34 +57,36 @@ void InitializeGame() {
 
 int main(void) {
 
-    screenSpace = screenHeight - (screenHeight / 25) - 30;
-    playerX = screenWidth / 2;
+    screenSpace = SCREEN_HEIGHT - (SCREEN_HEIGHT / 25) - 30;
+    playerX = SCREEN_WIDTH / 2;
     playerY = screenSpace;
     float bulletX = playerX + 40;
     float bulletY = playerY -40;
     float bulletSpeedX = -10;
     float bulletSpeedY = bulletSpeedX;
-    int blockSize = screenWidth / 20;
-    int blockLine1 = 50;
+    char highscoreText[50];
 
 
-    InitWindow(screenWidth, screenHeight, "useless raylib");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "useless raylib");
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
         const float bulletRadius = 5;
         BeginDrawing();
         InitializeGame();
+        playConditions player;
+
+        sprintf(highscoreText, "Highscore: \n %.0f", player.highscore);
 
         //player movement and logic
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
-        } else if (IsKeyDown(KEY_D) && playerX + screenWidth / 20 < screenWidth) {
+        } else if (IsKeyDown(KEY_D) && playerX + SCREEN_WIDTH / 20 < SCREEN_WIDTH) {
             playerX += movementSpeed;
         }
 
         if (IsKeyPressed(KEY_SPACE) && !bulletActive && isAlive == true) {
-            bulletX = playerX + screenWidth / 50;
+            bulletX = playerX + SCREEN_WIDTH / 50;
             bulletY = playerY;
             bulletActive = true;
         }
@@ -93,28 +95,30 @@ int main(void) {
             bulletY += bulletSpeedY;
             bulletX += bulletSpeedX;
 
-            if (bulletX - bulletRadius <= 0 || bulletX + bulletRadius >= screenWidth) {
+            if (bulletX - bulletRadius <= 0 || bulletX + bulletRadius >= SCREEN_WIDTH) {
                 bulletSpeedX *= -1;
             }
 
             if (bulletY - bulletRadius <= 0) {
                 bulletSpeedY *= -1;
             }
-            if (bulletY >= screenHeight) {
+            if (bulletY >= SCREEN_HEIGHT) {
                 bulletActive = false;
                 isAlive = false;
             }
         }
 
-        if (CheckCollisionCircleRec((Vector2){bulletX, bulletY}, bulletRadius, (Rectangle){playerX, playerY, screenWidth / 15, screenHeight / 50})) {
+        if (CheckCollisionCircleRec((Vector2){bulletX, bulletY}, bulletRadius, (Rectangle){playerX, playerY, SCREEN_WIDTH / 15, SCREEN_HEIGHT / 50})) {
             bulletSpeedY *= -1;
         }
         //block logic
         if (bulletActive == true && gameStarted == true && isAlive == true) {
-            DrawRectangle(500, blockLine1, blockSize, screenHeight/50, RED);
+            GameGrid();
         }
 
         gameOverCheck();
+
+        DrawText(highscoreText, SCREEN_WIDTH -350, SCREEN_HEIGHT - 880, 50, WHITE);
 
         ClearBackground(BLACK);
         EndDrawing();
