@@ -9,6 +9,12 @@ float playerY;
 float screenSpace;
 float movementSpeed = 70;
 
+typedef struct {
+    float healthPoints;
+    float highscore;
+} playConditions;
+
+
 bool isAlive = true;
 bool bulletActive = false;
 bool gameStarted = false;
@@ -27,7 +33,17 @@ void InitializeGame() {
         int key = GetKeyPressed();
         switch (key) {
             case KEY_Y:
+                playConditions player;
                 gameStarted = true;
+                if (player.healthPoints > 0) {
+                    player.healthPoints = 2.0f;
+                }
+                if (player.highscore > 0) {
+                    return;
+                } else if (player.healthPoints == 0) {
+                    player.highscore = 0.0f;
+                }
+
             isAlive = true;
             break;
             case KEY_N:
