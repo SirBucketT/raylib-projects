@@ -3,8 +3,8 @@
 
 #define SCREEN_WIDTH 1800
 #define SCREEN_HEIGHT 900
-#define ROWS 5
-#define COLUMNS 10
+#define ROWS 8
+#define COLUMNS 14
 #define MAX_BLOCKS (ROWS * COLUMNS)
 #define BLOCK_WIDTH 100
 #define BLOCK_HEIGHT 30
@@ -13,6 +13,7 @@
 float playerX;
 float playerY;
 float movementSpeed = 50;
+int OVER9000 = 9001;
 
 typedef struct {
     float healthPoints;
@@ -145,8 +146,8 @@ int main(void) {
     ballSpeedX = ballSpeed;
     ballSpeedY = -ballSpeed;
 
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raylib Block Game");
-    SetTargetFPS(60);
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block Game");
+    SetTargetFPS(OVER9000);
 
     while (!WindowShouldClose()) {
         BeginDrawing();
