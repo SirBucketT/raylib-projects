@@ -3,10 +3,10 @@
 
 #define SCREEN_WIDTH 1800
 #define SCREEN_HEIGHT 900
+#define MAX_BLOCKS 10
 
 float playerX;
 float playerY;
-float screenSpace;
 float movementSpeed = 70;
 
 typedef struct {
@@ -16,27 +16,58 @@ typedef struct {
 } ScoreData;
 
 typedef struct {
-    int blockSize;
-    int blockLine1;
-    int blockLine2;
-    int blockHealth;
-}blocks;
-
+    Rectangle rect;
+    int health;
+    bool active;
+} Block;
 
 bool isAlive = true;
 bool bulletActive = false;
 bool gameStarted = false;
 
-void GameGrid() {
-    blocks block = {SCREEN_WIDTH / 20, 50};
-    DrawRectangle(500, block.blockLine1, block.blockSize, SCREEN_HEIGHT/50, RED);
-    DrawRectangle(600, block.blockLine1, block.blockSize, SCREEN_HEIGHT /50, RED);
+Block blocks[MAX_BLOCKS];
+
+float ballSpeedX;
+float ballSpeedY;
+const float ballSpeed = 10.0f;
+
+void InitializeBlocks() {
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        blocks[i].rect.x = 200 + i * 120;
+        blocks[i].rect.y = 100;
+        blocks[i].rect.width = SCREEN_WIDTH / 20;
+        blocks[i].rect.height = SCREEN_HEIGHT / 50;
+        blocks[i].health = 3;
+        blocks[i].active = true;
+    }
+}
+
+void DrawBlocks() {
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        if (blocks[i].active) {
+            DrawRectangleRec(blocks[i].rect, RED);
+            DrawText(TextFormat("%d", blocks[i].health), blocks[i].rect.x + 20, blocks[i].rect.y + 10, 20, WHITE);
+        }
+    }
+}
+
+void CheckBulletCollision(float bulletX, float bulletY, float bulletRadius, ScoreData *player) {
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        if (blocks[i].active &&
+            CheckCollisionCircleRec((Vector2){bulletX, bulletY}, bulletRadius, blocks[i].rect)) {
+            blocks[i].health--;
+            if (blocks[i].health <= 0) {
+                blocks[i].active = false;
+                player->currentScore += 100;
+            }
+            ballSpeedY *= -1; // Bounce the ball vertically
+            break;
+        }
+    }
 }
 
 void gameOverCheck() {
-    if (isAlive == true && gameStarted == true) {
-        DrawRectangle(playerX, playerY, SCREEN_WIDTH / 20, SCREEN_HEIGHT/50, WHITE);
-    } else if (!isAlive && gameStarted == true) {
+    if (!isAlive && gameStarted) {
         DrawText("GAME OVER!", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2, 50, RED);
     }
 }
@@ -48,95 +79,104 @@ void InitializeGame() {
         switch (key) {
             case KEY_Y:
                 gameStarted = true;
-            isAlive = true;
-            break;
+                isAlive = true;
+                InitializeBlocks();
+                break;
             case KEY_N:
                 CloseWindow();
-            break;
+                break;
             default:
                 break;
         }
     }
-    if (bulletActive == true && gameStarted == true && isAlive == true) {
-        GameGrid();
-    }
 }
 
 int main(void) {
-
-    screenSpace = SCREEN_HEIGHT - (SCREEN_HEIGHT / 25) - 30;
     playerX = SCREEN_WIDTH / 2;
-    playerY = screenSpace;
-    float bulletX = playerX + 40;
-    float bulletY = playerY -40;
-    float bulletSpeedX = -10;
-    float bulletSpeedY = bulletSpeedX;
+    playerY = SCREEN_HEIGHT - 50;
+    float ballX = playerX + 40;
+    float ballY = playerY - 40;
+    const float ballRadius = 5;
     char highscoreText[50];
-    char currentScoreText[50];
+    char playerLives[1];
 
+    ballSpeedX = ballSpeed;
+    ballSpeedY = -ballSpeed;
 
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "useless raylib");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raylib Block Game");
     SetTargetFPS(60);
 
+    ScoreData player = {3, 0.0f, 0.0f};
+
     while (!WindowShouldClose()) {
-        const float bulletRadius = 5;
         BeginDrawing();
+        ClearBackground(BLACK);
+
+        if (player.currentScore >= player.highscore) {
+            player.highscore = player.currentScore;
+        }
+
         InitializeGame();
-        ScoreData player;
 
-        sprintf(highscoreText, "Highscore: \n %.0f", player.highscore);
-        sprintf(currentScoreText, "%.0f", player.currentScore);
+        sprintf(playerLives, "Lives: %i", playerLives);
+        if (player.healthPoints == 3) {
+            DrawText(playerLives, SCREEN_WIDTH, SCREEN_HEIGHT, 50, WHITE);
+        }
+        sprintf(highscoreText, "Highscore: %.0f", player.highscore);
+        DrawText(highscoreText, SCREEN_WIDTH / 2, SCREEN_HEIGHT - 880, 50, WHITE);
 
-        //player movement and logic
         if (IsKeyDown(KEY_A) && playerX > 0) {
             playerX -= movementSpeed;
         } else if (IsKeyDown(KEY_D) && playerX + SCREEN_WIDTH / 20 < SCREEN_WIDTH) {
             playerX += movementSpeed;
         }
 
-        if (IsKeyPressed(KEY_SPACE) && !bulletActive && isAlive == true) {
-            bulletX = playerX + SCREEN_WIDTH / 50;
-            bulletY = playerY;
+        if (IsKeyPressed(KEY_SPACE) && !bulletActive && isAlive) {
             bulletActive = true;
+            ballX = playerX + SCREEN_WIDTH / 50;
+            ballY = playerY;
+
+            ballSpeedY = -ballSpeed;
+            
+            ballSpeedX = GetRandomValue(0, 1) == 0 ? -ballSpeed / 2 : ballSpeed / 2;
         }
+
+        if (gameStarted == true, isAlive == true) {
+            DrawRectangle(playerX, playerY, SCREEN_WIDTH / 20, SCREEN_HEIGHT / 50, WHITE);
+        }
+
         if (bulletActive) {
-            DrawCircle(bulletX, bulletY - 40, bulletRadius, WHITE);
-            bulletY += bulletSpeedY;
-            bulletX += bulletSpeedX;
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
 
-            if (bulletX - bulletRadius <= 0 || bulletX + bulletRadius >= SCREEN_WIDTH) {
-                bulletSpeedX *= -1;
+            if (ballX - ballRadius <= 0 || ballX + ballRadius >= SCREEN_WIDTH) {
+                ballSpeedX *= -1;
             }
 
-            if (bulletY - bulletRadius <= 0) {
-                bulletSpeedY *= -1;
+            if (ballY - ballRadius <= 0) {
+                ballSpeedY *= -1;
             }
-            if (bulletY >= SCREEN_HEIGHT) {
+
+            if (ballY + ballRadius >= SCREEN_HEIGHT) {
                 bulletActive = false;
-                isAlive = false;
+                player.healthPoints -= 1; // Game over if ball falls below screen
             }
+
+            DrawCircle(ballX, ballY, ballRadius, WHITE);
+        }
+        if (player.healthPoints <= 0) {
+            isAlive = false;
         }
 
-        //screen collision detection
-        if (CheckCollisionCircleRec((Vector2){bulletX, bulletY}, bulletRadius, (Rectangle){playerX, playerY, SCREEN_WIDTH / 15, SCREEN_HEIGHT / 50})) {
-            bulletSpeedY *= -1;
-        }
+        CheckBulletCollision(ballX, ballY, ballRadius, &player);
+
+        DrawBlocks();
 
         gameOverCheck();
 
-        DrawText(highscoreText, SCREEN_WIDTH -350, SCREEN_HEIGHT - 880, 50, WHITE);
-        DrawText(currentScoreText, SCREEN_WIDTH /2, SCREEN_HEIGHT - 880, 50, WHITE);
-
-        //score updater
-        if (player.currentScore >= player.highscore) {
-            player.highscore = player.currentScore;
-        }
-
-        ClearBackground(BLACK);
         EndDrawing();
     }
 
     CloseWindow();
-
     return 0;
 }
