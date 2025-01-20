@@ -12,7 +12,7 @@ float movementSpeed = 70;
 typedef struct {
     float healthPoints;
     float highscore;
-} playConditions;
+} ScoreData;
 
 typedef struct {
     int blockSize;
@@ -74,7 +74,7 @@ int main(void) {
         const float bulletRadius = 5;
         BeginDrawing();
         InitializeGame();
-        playConditions player;
+        ScoreData player;
 
         sprintf(highscoreText, "Highscore: \n %.0f", player.highscore);
 
