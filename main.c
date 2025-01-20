@@ -54,6 +54,9 @@ void InitializeGame() {
                 break;
         }
     }
+    if (bulletActive == true && gameStarted == true && isAlive == true) {
+        GameGrid();
+    }
 }
 
 int main(void) {
@@ -111,12 +114,9 @@ int main(void) {
             }
         }
 
+        //screen collision detection
         if (CheckCollisionCircleRec((Vector2){bulletX, bulletY}, bulletRadius, (Rectangle){playerX, playerY, SCREEN_WIDTH / 15, SCREEN_HEIGHT / 50})) {
             bulletSpeedY *= -1;
-        }
-        //block logic
-        if (bulletActive == true && gameStarted == true && isAlive == true) {
-            GameGrid();
         }
 
         gameOverCheck();
