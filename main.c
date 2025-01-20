@@ -12,6 +12,7 @@ float movementSpeed = 70;
 typedef struct {
     float healthPoints;
     float highscore;
+    float currentScore;
 } ScoreData;
 
 typedef struct {
@@ -119,6 +120,11 @@ int main(void) {
         gameOverCheck();
 
         DrawText(highscoreText, SCREEN_WIDTH -350, SCREEN_HEIGHT - 880, 50, WHITE);
+
+        //score updater
+        if (player.currentScore >= player.highscore) {
+            player.highscore = player.currentScore;
+        }
 
         ClearBackground(BLACK);
         EndDrawing();
