@@ -18,6 +18,8 @@ typedef struct {
 typedef struct {
     int blockSize;
     int blockLine1;
+    int blockLine2;
+    int blockHealth;
 }blocks;
 
 
@@ -28,6 +30,7 @@ bool gameStarted = false;
 void GameGrid() {
     blocks block = {SCREEN_WIDTH / 20, 50};
     DrawRectangle(500, block.blockLine1, block.blockSize, SCREEN_HEIGHT/50, RED);
+    DrawRectangle(600, block.blockLine1, block.blockSize, SCREEN_HEIGHT /50, RED);
 }
 
 void gameOverCheck() {
