@@ -137,7 +137,7 @@ int main(void) {
             ballY = playerY;
 
             ballSpeedY = -ballSpeed;
-            
+
             ballSpeedX = GetRandomValue(0, 1) == 0 ? -ballSpeed / 2 : ballSpeed / 2;
         }
 
@@ -155,6 +155,15 @@ int main(void) {
 
             if (ballY - ballRadius <= 0) {
                 ballSpeedY *= -1;
+            }
+
+            Rectangle playerRect = {playerX, playerY, SCREEN_WIDTH / 20, SCREEN_HEIGHT / 50};
+            if (CheckCollisionCircleRec((Vector2){ballX, ballY}, ballRadius, playerRect)) {
+                ballSpeedY = -ballSpeed; // Reverse vertical direction (upward)
+
+                // Adjust horizontal speed based on where the ball hits the paddle
+                float hitPos = (ballX - playerX) / (SCREEN_WIDTH / 20);
+                ballSpeedX = (hitPos - 0.5f) * ballSpeed * 2.0f; // Map hitPos (0.0-1.0) to a range
             }
 
             if (ballY + ballRadius >= SCREEN_HEIGHT) {
