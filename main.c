@@ -9,7 +9,10 @@
 #define BLOCK_WIDTH 100
 #define BLOCK_HEIGHT 30
 #define BLOCK_SPACING 10
+#define MAX_BALLS 100
 
+int destroyed = 0;
+int upgradeValue = 0;
 float playerX;
 float playerY;
 float movementSpeed = 50;
@@ -27,6 +30,16 @@ typedef struct {
     bool active;
     Color color; 
 } Block;
+
+typedef struct {
+    float x;
+    float y;
+    float speedX;
+    float speedY;
+    float radius;
+    bool active;
+} Ball;
+
 
 const int KONAMI_CODE[] = {
     KEY_UP, KEY_UP, KEY_DOWN, KEY_DOWN,
@@ -46,6 +59,7 @@ bool bulletActive = false;
 bool gameStarted = false;
 
 Block blocks[MAX_BLOCKS];
+Ball balls[MAX_BALLS];
 
 float ballSpeedX;
 float ballSpeedY;
@@ -106,9 +120,15 @@ void CheckBulletCollision(float bulletX, float bulletY, float bulletRadius, Scor
             if (blocks[i].health <= 0) {
                 blocks[i].active = false;
                 player->currentScore += 100;
+                destroyed+= 1;
             }
             ballSpeedY *= -1; // Bounce the ball vertically
             break;
+
+            if (destroyed >= upgradeValue) {
+
+            }
+
         }
 
     }
