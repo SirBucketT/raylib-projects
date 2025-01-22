@@ -4,8 +4,8 @@
 
 #define SCREEN_WIDTH   1800
 #define SCREEN_HEIGHT  900
-#define ROWS           20
-#define COLUMNS        20
+#define ROWS           40
+#define COLUMNS        14
 #define MAX_BLOCKS     (ROWS * COLUMNS)
 #define BLOCK_WIDTH    100
 #define BLOCK_HEIGHT   30
@@ -31,7 +31,7 @@ typedef struct {
 
 blocksRow level = {2, 14};
 
-playerDataManager player = {3000, 0.0f, 0.0f};
+playerDataManager player = {10, 0.0f, 0.0f};
 
 // Blocks array
 Block blocks[MAX_BLOCKS];
@@ -363,10 +363,47 @@ void GameOver(void) {
     DrawText("GAME OVER!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, RED);
     DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
 }
+
+// --------------------------------------------------------------------------------
+// Managing saving and loading of user highscore data into a text file
+// --------------------------------------------------------------------------------
+
+void dataLoader(bool load)
+{
+    if (load)
+    {
+        FILE *file = fopen("highscore.txt", "r");
+        if (file)
+        {
+            float storedHighscore = 0.0f;
+            if (fscanf(file, "%f", &storedHighscore) == 1)
+            {
+                player.highscore = storedHighscore;
+            }
+            fclose(file);
+        }
+        else
+        {
+            player.highscore = 0.0f;
+        }
+    }
+    else
+    {
+        // SAVE:
+        FILE *file = fopen("highscore.txt", "w");
+        if (file)
+        {
+            fprintf(file, "%.0f\n", player.highscore);
+            fclose(file);
+        }
+    }
+}
+
 //main loop of the game
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block kuzushi raylib game build");
     SetTargetFPS(60);
+    dataLoader(true);
 
     playerX = SCREEN_WIDTH / 2.0f;
     playerY = SCREEN_HEIGHT - 150.0f;
