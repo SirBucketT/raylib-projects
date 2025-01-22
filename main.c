@@ -17,24 +17,24 @@
 // Game-state structs
 // --------------------------------------------------------------------------------
 typedef struct {
-    float healthPoints;    // number of lives
+    float HP;
     float highscore;
     float currentScore;
-} ScoreData;
+} playerDataManager;
 
 typedef struct {
     Rectangle rect;
-    int health;   // block health: 1..3
+    int health;
     bool active;
     Color color;
 } Block;
 
 // --------------------------------------------------------------------------------
-// Global variables (names remain the same)
+// Global variables
 // --------------------------------------------------------------------------------
 
 // Player data
-static ScoreData player = {3, 0.0f, 0.0f};
+static playerDataManager player = {3, 0.0f, 0.0f};
 
 // Blocks array
 static Block blocks[MAX_BLOCKS];
@@ -44,7 +44,7 @@ static float playerX;
 static float playerY;
 static float movementSpeed = 50.0f;
 
-// Single "main" ball
+// Single main ball
 static bool  bulletActive = false;
 static float ballX, ballY;
 static float ballSpeedX, ballSpeedY;
@@ -52,8 +52,9 @@ static const float BALL_SPEED  = 10.0f;   // base ball speed
 static const float BALL_RADIUS = 8.0f;    // radius of each ball
 
 // Control flow
-static bool gameStarted = false;  // becomes true after pressing Y to start
-static bool isAlive     = true;   // becomes false when lives run out
+static bool gameStarted = false;
+static bool isAlive     = true;
+static bool gameWon     = false;  // new flag for "win" condition
 
 // Konami code
 static const int KONAMI_CODE[] = {
@@ -64,49 +65,45 @@ static const int KONAMI_CODE[] = {
 static const int KONAMI_CODE_LENGTH = 10;
 static int konamiIndex = 0;
 
-// --------------------------------------------------------------------------------
-// NEW variables for spawning 4 extra balls without renaming existing code
-// --------------------------------------------------------------------------------
-static bool  fourBallsSpawned  = false;       // track if we've already spawned them
+// 4 extra balls
+static bool  fourBallsSpawned  = false;
 static bool  extraBulletActive[4] = { false, false, false, false };
 static float extraBallX[4];
 static float extraBallY[4];
 static float extraBallSpeedX[4];
 static float extraBallSpeedY[4];
 
-// --------------------------------------------------------------------------------
-// Forward declarations
-// --------------------------------------------------------------------------------
+
 void GameStarter(void);
 void InitializeGame(void);
 void InitializeBlocks(void);
 void UpdateGame(void);
 void DrawGame(void);
 void GameOver(void);
+void WinScreen(void);
 void CheckBallBlockCollision(void);
 bool IsAnyKeyPressed(void);
 void Upgrades(void);
 
-// --------------------------------------------------------------------------------
-// InitializeBlocks - sets the positions and health of all blocks
-// --------------------------------------------------------------------------------
+static bool AllBlocksCleared(void) {
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        if (blocks[i].active) return false;
+    }
+    return true;
+}
+
 void InitializeBlocks(void) {
     int blockIndex = 0;
     for (int row = 0; row < ROWS; row++) {
         for (int col = 0; col < COLUMNS; col++) {
             if (blockIndex >= MAX_BLOCKS) break;
-
-            // Set the position of each block
             blocks[blockIndex].rect.x = col * (BLOCK_WIDTH + BLOCK_SPACING) + 100;
             blocks[blockIndex].rect.y = row * (BLOCK_HEIGHT + BLOCK_SPACING) + 50;
-            blocks[blockIndex].rect.width  = BLOCK_WIDTH;
-            blocks[blockIndex].rect.height = BLOCK_HEIGHT;
-
-            // Randomly assign health 1..3
+            blocks[blockIndex].rect.width  =  BLOCK_WIDTH;
+            blocks[blockIndex].rect.height =  BLOCK_HEIGHT;
             blocks[blockIndex].health = GetRandomValue(1, 3);
             blocks[blockIndex].active = true;
 
-            // Color depends on health
             if      (blocks[blockIndex].health == 1) blocks[blockIndex].color = GREEN;
             else if (blocks[blockIndex].health == 2) blocks[blockIndex].color = YELLOW;
             else                                      blocks[blockIndex].color = RED;
@@ -116,37 +113,22 @@ void InitializeBlocks(void) {
     }
 }
 
-// --------------------------------------------------------------------------------
-// GameStarter - called whenever you press 'Y' to start or restart the game
-// --------------------------------------------------------------------------------
 void GameStarter(void) {
-    // Reset player stats
-    player.healthPoints = 3;
+    player.HP = 9000;
     player.currentScore = 0;
     isAlive             = true;
     gameStarted         = true;
-
-    // Re-initialize blocks
+    gameWon             = false;
     InitializeBlocks();
-
-    // Reset the extra ball spawn flag
-    fourBallsSpawned = false;
-
-    // Position paddle in the middle
+    fourBallsSpawned    = false;
     playerX = SCREEN_WIDTH / 2.0f;
     playerY = SCREEN_HEIGHT - 150.0f;
-
-    // Automatically spawn the first (main) ball
     bulletActive = true;
     ballX        = playerX + 40.0f;
     ballY        = playerY - 40.0f;
     ballSpeedX   = BALL_SPEED;
     ballSpeedY   = -BALL_SPEED;
-
-    // Deactivate any extra balls
-    for (int i = 0; i < 4; i++) {
-        extraBulletActive[i] = false;
-    }
+    for (int i = 0; i < 4; i++) extraBulletActive[i] = false;
 }
 
 // --------------------------------------------------------------------------------
@@ -174,9 +156,7 @@ void InitializeGame(void) {
 // --------------------------------------------------------------------------------
 bool IsAnyKeyPressed(void) {
     for (int key = KEY_SPACE; key <= KEY_KP_9; key++) {
-        if (IsKeyPressed(key)) {
-            return true;
-        }
+        if (IsKeyPressed(key)) return true;
     }
     return false;
 }
@@ -185,11 +165,10 @@ bool IsAnyKeyPressed(void) {
 // Upgrades - checks Konami code, etc.
 // --------------------------------------------------------------------------------
 void Upgrades(void) {
-    // Konami code
     if (IsKeyPressed(KONAMI_CODE[konamiIndex])) {
         konamiIndex++;
         if (konamiIndex == KONAMI_CODE_LENGTH) {
-            player.healthPoints = 9001; // unstoppable
+            player.HP = 9001;
             konamiIndex = 0;
         }
     }
@@ -199,20 +178,17 @@ void Upgrades(void) {
 }
 
 // --------------------------------------------------------------------------------
-// CheckBallBlockCollision - decrements block health if hit by the main ball
+// CheckBallBlockCollision - main ball hits block
 // --------------------------------------------------------------------------------
 void CheckBallBlockCollision(void) {
     for (int i = 0; i < MAX_BLOCKS; i++) {
         if (blocks[i].active &&
-            CheckCollisionCircleRec((Vector2){ballX, ballY}, BALL_RADIUS, blocks[i].rect))
-        {
-            // Hit this block
+            CheckCollisionCircleRec((Vector2){ballX, ballY}, BALL_RADIUS, blocks[i].rect)) {
             blocks[i].health--;
             if (blocks[i].health <= 0) {
                 blocks[i].active = false;
                 player.currentScore += 100;
             }
-            // Bounce the main ball vertically
             ballSpeedY *= -1.0f;
             break;
         }
@@ -220,19 +196,17 @@ void CheckBallBlockCollision(void) {
 }
 
 // --------------------------------------------------------------------------------
-// CheckExtraBallsBlockCollision - for each of the 4 extra balls
+// CheckExtraBallsBlockCollision - each extra ball hits block
 // --------------------------------------------------------------------------------
 static void CheckExtraBallsBlockCollision(int index) {
     for (int i = 0; i < MAX_BLOCKS; i++) {
         if (blocks[i].active &&
-            CheckCollisionCircleRec((Vector2){extraBallX[index], extraBallY[index]}, BALL_RADIUS, blocks[i].rect))
-        {
+            CheckCollisionCircleRec((Vector2){extraBallX[index], extraBallY[index]}, BALL_RADIUS, blocks[i].rect)) {
             blocks[i].health--;
             if (blocks[i].health <= 0) {
                 blocks[i].active = false;
                 player.currentScore += 100;
             }
-            // Bounce the extra ball vertically
             extraBallSpeedY[index] *= -1.0f;
             break;
         }
@@ -240,16 +214,15 @@ static void CheckExtraBallsBlockCollision(int index) {
 }
 
 // --------------------------------------------------------------------------------
-// SpawnFourBallsIfNeeded - spawns 4 extra balls at the current ball's location
-//                          with random directions if score >= 4000, only once
+// SpawnFourBallsIfNeeded - once player.currentScore >= 4000, spawn 4 extra balls
 // --------------------------------------------------------------------------------
 static void SpawnFourBallsIfNeeded(void) {
     if (!fourBallsSpawned && player.currentScore >= 4000.0f) {
         for (int i = 0; i < 4; i++) {
             extraBulletActive[i] = true;
-            extraBallX[i] = ballX;  // same location as current main ball
+            extraBallX[i] = ballX;
             extraBallY[i] = ballY;
-            float angle = GetRandomValue(0, 359) * DEG2RAD; // random angle
+            float angle = GetRandomValue(0, 359) * DEG2RAD;
             extraBallSpeedX[i] = cosf(angle) * BALL_SPEED;
             extraBallSpeedY[i] = sinf(angle) * BALL_SPEED;
         }
@@ -258,10 +231,9 @@ static void SpawnFourBallsIfNeeded(void) {
 }
 
 // --------------------------------------------------------------------------------
-// UpdateGame - handles all gameplay logic if the player is still alive
+// UpdateGame - main gameplay logic
 // --------------------------------------------------------------------------------
 void UpdateGame(void) {
-    // If we lost the main ball, press SPACE to spawn a new one (if still alive)
     if (IsKeyPressed(KEY_SPACE) && !bulletActive && isAlive) {
         bulletActive = true;
         ballX = playerX + (SCREEN_WIDTH / 50);
@@ -269,21 +241,14 @@ void UpdateGame(void) {
         ballSpeedY = -BALL_SPEED;
         ballSpeedX = (GetRandomValue(0, 1) == 0) ? -BALL_SPEED / 2 : BALL_SPEED / 2;
     }
-
-    // Update main ball
     if (bulletActive) {
         ballX += ballSpeedX;
         ballY += ballSpeedY;
-
-        if (ballX - BALL_RADIUS <= 0 || ballX + BALL_RADIUS >= SCREEN_WIDTH) {
-            ballSpeedX *= -1;
-        }
-        if (ballY - BALL_RADIUS <= 0) {
-            ballSpeedY *= -1;
-        }
+        if (ballX - BALL_RADIUS <= 0 || ballX + BALL_RADIUS >= SCREEN_WIDTH) ballSpeedX *= -1;
+        if (ballY - BALL_RADIUS <= 0) ballSpeedY *= -1;
         if (ballY + BALL_RADIUS >= SCREEN_HEIGHT) {
             bulletActive = false;
-            player.healthPoints -= 1;
+            player.HP -= 1;
         }
         Rectangle playerRect = { playerX, playerY, SCREEN_WIDTH / 20.0f, SCREEN_HEIGHT / 50.0f };
         if (CheckCollisionCircleRec((Vector2){ballX, ballY}, BALL_RADIUS, playerRect)) {
@@ -293,16 +258,11 @@ void UpdateGame(void) {
         }
         CheckBallBlockCollision();
     }
-
-    // Possibly spawn the 4 extra balls (only once at score >= 4000)
     SpawnFourBallsIfNeeded();
-
-    // Update extra balls
     for (int i = 0; i < 4; i++) {
         if (extraBulletActive[i]) {
             extraBallX[i] += extraBallSpeedX[i];
             extraBallY[i] += extraBallSpeedY[i];
-
             if (extraBallX[i] - BALL_RADIUS <= 0 || extraBallX[i] + BALL_RADIUS >= SCREEN_WIDTH) {
                 extraBallSpeedX[i] *= -1.0f;
             }
@@ -311,7 +271,7 @@ void UpdateGame(void) {
             }
             if (extraBallY[i] + BALL_RADIUS >= SCREEN_HEIGHT) {
                 extraBulletActive[i] = false;
-                player.healthPoints -= 1;
+                player.HP -= 1;
             }
             Rectangle playerRect = { playerX, playerY, SCREEN_WIDTH / 20.0f, SCREEN_HEIGHT / 50.0f };
             if (CheckCollisionCircleRec((Vector2){extraBallX[i], extraBallY[i]}, BALL_RADIUS, playerRect)) {
@@ -322,19 +282,20 @@ void UpdateGame(void) {
             CheckExtraBallsBlockCollision(i);
         }
     }
-
-    // Paddle movement
     if (IsKeyDown(KEY_A) && playerX > 0) {
         playerX -= movementSpeed;
     }
     else if (IsKeyDown(KEY_D) && playerX + (SCREEN_WIDTH/20) < SCREEN_WIDTH) {
         playerX += movementSpeed;
     }
-
-    // Lose if health is <= 0
-    if (player.healthPoints <= 0) {
-        player.healthPoints = 0;
+    if (player.HP <= 0) {
+        player.HP = 0;
         isAlive = false;
+        bulletActive = false;
+        for (int i = 0; i < 4; i++) extraBulletActive[i] = false;
+    }
+    if (AllBlocksCleared() && !gameWon) {
+        gameWon = true;
         bulletActive = false;
         for (int i = 0; i < 4; i++) {
             extraBulletActive[i] = false;
@@ -343,40 +304,23 @@ void UpdateGame(void) {
 }
 
 // --------------------------------------------------------------------------------
-// DrawGame - draws all game elements if the player is alive
+// DrawGame - draws all game elements
 // --------------------------------------------------------------------------------
 void DrawGame(void) {
-    // Draw current score
     DrawText(TextFormat("%.0f", player.currentScore),
              SCREEN_WIDTH/2 - 155, SCREEN_HEIGHT - 100, 50, WHITE);
-
-    // Update and draw highscore
-    if (player.currentScore > player.highscore) {
-        player.highscore = player.currentScore;
-    }
+    if (player.currentScore > player.highscore) player.highscore = player.currentScore;
     DrawText(TextFormat("Highscore: %.0f", player.highscore),
              SCREEN_WIDTH - 400, SCREEN_HEIGHT - 100, 50, WHITE);
-
-    // Draw player lives
-    DrawText(TextFormat("Lives: %.0f", player.healthPoints),
+    DrawText(TextFormat("Lives: %.0f", player.HP),
              SCREEN_WIDTH -1700, SCREEN_HEIGHT - 100, 50, WHITE);
-
-    // Draw paddle
     DrawRectangle((int)playerX, (int)playerY, SCREEN_WIDTH/20, SCREEN_HEIGHT/50, WHITE);
-
-    // Draw the main ball if active
-    if (bulletActive) {
-        DrawCircle((int)ballX, (int)ballY, BALL_RADIUS, WHITE);
-    }
-
-    // Draw the extra balls if active
+    if (bulletActive) DrawCircle((int)ballX, (int)ballY, BALL_RADIUS, WHITE);
     for (int i = 0; i < 4; i++) {
         if (extraBulletActive[i]) {
             DrawCircle((int)extraBallX[i], (int)extraBallY[i], BALL_RADIUS, WHITE);
         }
     }
-
-    // Draw blocks
     for (int i = 0; i < MAX_BLOCKS; i++) {
         if (blocks[i].active) {
             DrawRectangleRec(blocks[i].rect, blocks[i].color);
@@ -385,6 +329,20 @@ void DrawGame(void) {
                      (int)(blocks[i].rect.y + blocks[i].rect.height/2 - 10),
                      20, WHITE);
         }
+    }
+}
+
+// --------------------------------------------------------------------------------
+// WinScreen - if all blocks are cleared
+// --------------------------------------------------------------------------------
+void WinScreen(void) {
+    DrawText("YOU WIN!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, GREEN);
+    DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
+    if (IsKeyPressed(KEY_Y)) {
+        GameStarter();
+    }
+    else if (IsKeyPressed(KEY_N)) {
+        CloseWindow();
     }
 }
 
@@ -402,14 +360,10 @@ void GameOver(void) {
     }
 }
 
-// --------------------------------------------------------------------------------
-// main() - the game loop
-// --------------------------------------------------------------------------------
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block kuzushi raylib game build");
     SetTargetFPS(60);
 
-    // Initial positions (overridden in GameStarter anyway)
     playerX = SCREEN_WIDTH / 2.0f;
     playerY = SCREEN_HEIGHT - 150.0f;
 
@@ -420,8 +374,11 @@ int main(void) {
         if (!gameStarted) {
             InitializeGame();
         }
-        else if (!isAlive) {
+        else if (!isAlive && !gameWon) {
             GameOver();
+        }
+        else if (gameWon) {
+            WinScreen();
         }
         else {
             Upgrades();
