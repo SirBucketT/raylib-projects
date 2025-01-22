@@ -35,7 +35,7 @@ static float playerY;
 static float movementSpeed = 50.0f;
 
 // Single main ball
-static bool  bulletActive = false;
+static bool  ball_active = false;
 static float ballX, ballY;
 static float ballSpeedX, ballSpeedY;
 static const float BALL_SPEED  = 10.0f;   // base ball speed
@@ -44,7 +44,7 @@ static const float BALL_RADIUS = 8.0f;    // radius of each ball
 // Control flow
 static bool gameStarted = false;
 static bool isAlive     = true;
-static bool gameWon     = false;  // new flag for "win" condition
+static bool gameWon     = false;
 
 // Konami code
 static const int KONAMI_CODE[] = {
@@ -113,7 +113,7 @@ void GameStarter(void) {
     fourBallsSpawned    = false;
     playerX = SCREEN_WIDTH / 2.0f;
     playerY = SCREEN_HEIGHT - 150.0f;
-    bulletActive = true;
+    ball_active = true;
     ballX        = playerX + 40.0f;
     ballY        = playerY - 40.0f;
     ballSpeedX   = BALL_SPEED;
@@ -223,20 +223,20 @@ static void SpawnFourBallsIfNeeded(void) {
 // UpdateGame - main gameplay logic
 // --------------------------------------------------------------------------------
 void UpdateGame(void) {
-    if (IsKeyPressed(KEY_SPACE) && !bulletActive && isAlive) {
-        bulletActive = true;
+    if (IsKeyPressed(KEY_SPACE) && !ball_active && isAlive) {
+        ball_active = true;
         ballX = playerX + (SCREEN_WIDTH / 50);
         ballY = playerY;
         ballSpeedY = -BALL_SPEED;
         ballSpeedX = (GetRandomValue(0, 1) == 0) ? -BALL_SPEED / 2 : BALL_SPEED / 2;
     }
-    if (bulletActive) {
+    if (ball_active) {
         ballX += ballSpeedX;
         ballY += ballSpeedY;
         if (ballX - BALL_RADIUS <= 0 || ballX + BALL_RADIUS >= SCREEN_WIDTH) ballSpeedX *= -1;
         if (ballY - BALL_RADIUS <= 0) ballSpeedY *= -1;
         if (ballY + BALL_RADIUS >= SCREEN_HEIGHT) {
-            bulletActive = false;
+            ball_active = false;
             player.HP -= 1;
         }
         Rectangle playerRect = { playerX, playerY, SCREEN_WIDTH / 20.0f, SCREEN_HEIGHT / 50.0f };
@@ -280,12 +280,12 @@ void UpdateGame(void) {
     if (player.HP <= 0) {
         player.HP = 0;
         isAlive = false;
-        bulletActive = false;
+        ball_active = false;
         for (int i = 0; i < 4; i++) extraBulletActive[i] = false;
     }
     if (AllBlocksCleared() && !gameWon) {
         gameWon = true;
-        bulletActive = false;
+        ball_active = false;
         for (int i = 0; i < 4; i++) {
             extraBulletActive[i] = false;
         }
@@ -304,7 +304,7 @@ void DrawGame(void) {
     DrawText(TextFormat("Lives: %.0f", player.HP),
              SCREEN_WIDTH -1700, SCREEN_HEIGHT - 100, 50, WHITE);
     DrawRectangle((int)playerX, (int)playerY, SCREEN_WIDTH/20, SCREEN_HEIGHT/50, WHITE);
-    if (bulletActive) DrawCircle((int)ballX, (int)ballY, BALL_RADIUS, WHITE);
+    if (ball_active) DrawCircle((int)ballX, (int)ballY, BALL_RADIUS, WHITE);
     for (int i = 0; i < 4; i++) {
         if (extraBulletActive[i]) {
             DrawCircle((int)extraBallX[i], (int)extraBallY[i], BALL_RADIUS, WHITE);
