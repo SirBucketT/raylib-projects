@@ -513,7 +513,6 @@ int main(void) {
             default:
                 break;
         }
-
         EndDrawing();
     }
     dataLoader(false);
