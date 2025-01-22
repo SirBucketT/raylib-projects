@@ -12,6 +12,13 @@
 #define BLOCK_SPACING  10
 
 typedef struct Block {
+    Rectangle rect;
+    int health;
+    bool active;
+    Color color;
+} Block;
+
+typedef struct {
     int currentRows; //8;
     int currentCols; //14;
 } blocksRow;
@@ -22,15 +29,7 @@ typedef struct {
     float currentScore;
 } playerDataManager;
 
-typedef struct {
-    Rectangle rect;
-    int health;
-    bool active;
-    Color color;
-} Block;
-
 blocksRow level = {2, 14};
-
 playerDataManager player = {10, 0.0f, 0.0f};
 
 // Blocks array
@@ -70,6 +69,9 @@ float extraBallY[4];
 float extraBallSpeedX[4];
 float extraBallSpeedY[4];
 
+// --------------------------------------------------------------------------------
+// Forward declarations
+// --------------------------------------------------------------------------------
 void GameStarter(void);
 void InitializeGame(void);
 void InitializeBlocks(void);
@@ -77,12 +79,37 @@ void UpdateGame(void);
 void DrawGame(void);
 void GameOver(void);
 void WinScreen(void);
-void CheckBallBlockCollision(void);
 bool IsAnyKeyPressed(void);
 void Upgrades(void);
 void levelReset(void);
 void dataLoader(bool load);
+bool AllBlocksCleared(void);
+void SpawnFourBallsIfNeeded(void);
 
+// --------------------------------------------------------------------------------
+// CheckBlockCollision - Unified function for both main and extra balls
+// --------------------------------------------------------------------------------
+void CheckBlockCollision(float *posX, float *posY, float radius, float *speedX, float *speedY) {
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        if (blocks[i].active &&
+            CheckCollisionCircleRec((Vector2){*posX, *posY}, radius, blocks[i].rect)) {
+
+            blocks[i].health--;
+            if (blocks[i].health <= 0) {
+                blocks[i].active = false;
+                player.currentScore += 100;
+            }
+
+            // Reverse only the Y speed (as your original code did)
+            *speedY *= -1.0f;
+            break;
+        }
+    }
+}
+
+// --------------------------------------------------------------------------------
+// Returns true if all blocks have been cleared, otherwise false
+// --------------------------------------------------------------------------------
 bool AllBlocksCleared(void) {
     for (int i = 0; i < MAX_BLOCKS; i++) {
         if (blocks[i].active) return false;
@@ -90,6 +117,9 @@ bool AllBlocksCleared(void) {
     return true;
 }
 
+// --------------------------------------------------------------------------------
+// InitializeBlocks - set up block positions, health, and colors
+// --------------------------------------------------------------------------------
 void InitializeBlocks(void) {
     int blockIndex = 0;
     for (int row = 0; row < level.currentRows; row++) {
@@ -111,6 +141,9 @@ void InitializeBlocks(void) {
     }
 }
 
+// --------------------------------------------------------------------------------
+// GameStarter - resets the game state for a new run
+// --------------------------------------------------------------------------------
 void GameStarter(void) {
     player.currentScore = 0;
     isAlive             = true;
@@ -132,18 +165,17 @@ void GameStarter(void) {
 // InitializeGame - shows "START GAME (Y/N)" if not started
 // --------------------------------------------------------------------------------
 void InitializeGame(void) {
-
     DrawText("START GAME (Y/N)", SCREEN_WIDTH/2 - 250, SCREEN_HEIGHT/2, 50, WHITE);
     int key = GetKeyPressed();
     switch (key) {
         case KEY_Y:
             GameStarter();
-        break;
+            break;
         case KEY_N:
             CloseWindow();
             dataLoader(false);
-        break;
-            default:
+            break;
+        default:
             break;
     }
 }
@@ -175,48 +207,7 @@ void Upgrades(void) {
 }
 
 // --------------------------------------------------------------------------------
-// main ball hits block
-// --------------------------------------------------------------------------------
-void CheckBallBlockCollision(void) {
-    for (int i = 0; i < MAX_BLOCKS; i++) {
-        if (blocks[i].active &&
-            CheckCollisionCircleRec((Vector2){ballX, ballY}, BALL_RADIUS, blocks[i].rect)) {
-            blocks[i].health--;
-            if (blocks[i].health <= 0) {
-                blocks[i].active = false;
-                player.currentScore += 100;
-            }
-            ballSpeedY *= -1.0f;
-            break;
-        }
-    }
-}
-
-// --------------------------------------------------------------------------------
-// each extra ball hits block
-// --------------------------------------------------------------------------------
-void CheckExtraBallsBlockCollision(int index) {
-    for (int i = 0; i < MAX_BLOCKS; i++) {
-        if (blocks[i].active &&
-            CheckCollisionCircleRec((Vector2){extraBallX[index], extraBallY[index]}, BALL_RADIUS, blocks[i].rect)) {
-            blocks[i].health--;
-            if (blocks[i].health <= 0) {
-                blocks[i].active = false;
-                player.currentScore += 100;
-            }
-            extraBallSpeedY[index] *= -1.0f;
-            break;
-        }
-    }
-}
-
-void levelReset(void) {
-    if (level.currentRows >= 14) {
-        level.currentRows = ROWS;
-    }
-}
-// --------------------------------------------------------------------------------
-// once player.currentScore >= 4000, spawn 4 extra balls
+// Check and spawn the extra 4 balls if player's score >= 4000
 // --------------------------------------------------------------------------------
 void SpawnFourBallsIfNeeded(void) {
     if (!fourBallsSpawned && player.currentScore >= 4000.0f) {
@@ -233,7 +224,7 @@ void SpawnFourBallsIfNeeded(void) {
 }
 
 // --------------------------------------------------------------------------------
-// main gameplay logic
+// Main gameplay logic
 // --------------------------------------------------------------------------------
 void UpdateGame(void) {
     if (IsKeyPressed(KEY_SPACE) && !ball_active && isAlive) {
@@ -243,6 +234,8 @@ void UpdateGame(void) {
         ballSpeedY = -BALL_SPEED;
         ballSpeedX = (GetRandomValue(0, 1) == 0) ? -BALL_SPEED / 2 : BALL_SPEED / 2;
     }
+
+    // Update main ball
     if (ball_active) {
         ballX += ballSpeedX;
         ballY += ballSpeedY;
@@ -252,15 +245,23 @@ void UpdateGame(void) {
             ball_active = false;
             player.HP -= 1;
         }
+
+        // Paddle collision
         Rectangle playerRect = { playerX, playerY, SCREEN_WIDTH / 20.0f, SCREEN_HEIGHT / 50.0f };
         if (CheckCollisionCircleRec((Vector2){ballX, ballY}, BALL_RADIUS, playerRect)) {
             ballSpeedY = -BALL_SPEED;
             float hitPos = (ballX - playerX) / (SCREEN_WIDTH / 20.0f);
             ballSpeedX   = (hitPos - 0.5f) * BALL_SPEED * 2.0f;
         }
-        CheckBallBlockCollision();
+
+        // Check main ball collisions with blocks
+        CheckBlockCollision(&ballX, &ballY, BALL_RADIUS, &ballSpeedX, &ballSpeedY);
     }
+
+    // Spawn extra balls if needed
     SpawnFourBallsIfNeeded();
+
+    // Update extra balls
     for (int i = 0; i < 4; i++) {
         if (extraBulletActive[i]) {
             extraBallX[i] += extraBallSpeedX[i];
@@ -275,54 +276,78 @@ void UpdateGame(void) {
                 extraBulletActive[i] = false;
                 player.HP -= 1;
             }
+
+            // Paddle collision for extra balls
             Rectangle playerRect = { playerX, playerY, SCREEN_WIDTH / 20.0f, SCREEN_HEIGHT / 50.0f };
             if (CheckCollisionCircleRec((Vector2){extraBallX[i], extraBallY[i]}, BALL_RADIUS, playerRect)) {
                 extraBallSpeedY[i] = -BALL_SPEED;
                 float hitPos = (extraBallX[i] - playerX) / (SCREEN_WIDTH / 20.0f);
                 extraBallSpeedX[i] = (hitPos - 0.5f) * BALL_SPEED * 2.0f;
             }
-            CheckExtraBallsBlockCollision(i);
+
+            // Check extra ball collisions with blocks
+            CheckBlockCollision(&extraBallX[i], &extraBallY[i], BALL_RADIUS,
+                                &extraBallSpeedX[i], &extraBallSpeedY[i]);
         }
     }
+
+    // Paddle movement
     if (IsKeyDown(KEY_A) && playerX > 0) {
         playerX -= movementSpeed;
     }
     else if (IsKeyDown(KEY_D) && playerX + (SCREEN_WIDTH/20) < SCREEN_WIDTH) {
         playerX += movementSpeed;
     }
+
+    // Check if player is out of lives
     if (player.HP <= 0) {
         player.HP = 0;
         isAlive = false;
         ball_active = false;
         for (int i = 0; i < 4; i++) extraBulletActive[i] = false;
     }
+
+    // Check if all blocks are cleared
     if (AllBlocksCleared() && !gameWon) {
         gameWon = true;
         ball_active = false;
-        for (int i = 0; i < 4; i++) {
-            extraBulletActive[i] = false;
-        }
+        for (int i = 0; i < 4; i++) extraBulletActive[i] = false;
     }
 }
 
 // --------------------------------------------------------------------------------
-//draws all game elements
+// Draw all game elements
 // --------------------------------------------------------------------------------
 void DrawGame(void) {
+    // Score
     DrawText(TextFormat("%.0f", player.currentScore),
              SCREEN_WIDTH/2 - 155, SCREEN_HEIGHT - 100, 50, WHITE);
+
+    // Highscore
     if (player.currentScore > player.highscore) player.highscore = player.currentScore;
     DrawText(TextFormat("Highscore: %.0f", player.highscore),
              SCREEN_WIDTH - 400, SCREEN_HEIGHT - 100, 50, WHITE);
+
+    // Lives
     DrawText(TextFormat("Lives: %.0f", player.HP),
              SCREEN_WIDTH -1700, SCREEN_HEIGHT - 100, 50, WHITE);
+
+    // Paddle
     DrawRectangle((int)playerX, (int)playerY, SCREEN_WIDTH/20, SCREEN_HEIGHT/50, WHITE);
-    if (ball_active) DrawCircle((int)ballX, (int)ballY, BALL_RADIUS, WHITE);
+
+    // Main ball
+    if (ball_active) {
+        DrawCircle((int)ballX, (int)ballY, BALL_RADIUS, WHITE);
+    }
+
+    // Extra balls
     for (int i = 0; i < 4; i++) {
         if (extraBulletActive[i]) {
             DrawCircle((int)extraBallX[i], (int)extraBallY[i], BALL_RADIUS, WHITE);
         }
     }
+
+    // Blocks
     for (int i = 0; i < MAX_BLOCKS; i++) {
         if (blocks[i].active) {
             DrawRectangleRec(blocks[i].rect, blocks[i].color);
@@ -335,7 +360,7 @@ void DrawGame(void) {
 }
 
 // --------------------------------------------------------------------------------
-// if all blocks are cleared
+// If all blocks are cleared
 // --------------------------------------------------------------------------------
 void WinScreen(void) {
     if (IsKeyPressed(KEY_Y)) {
@@ -352,7 +377,7 @@ void WinScreen(void) {
 }
 
 // --------------------------------------------------------------------------------
-// GameOver when isAlive == false
+// GameOver when isAlive is false
 // --------------------------------------------------------------------------------
 void GameOver(void) {
     if (IsKeyPressed(KEY_Y)) {
@@ -368,41 +393,43 @@ void GameOver(void) {
 }
 
 // --------------------------------------------------------------------------------
+// Called within WinScreen to reset the level rows if they get too large
+// --------------------------------------------------------------------------------
+void levelReset(void) {
+    if (level.currentRows >= 14) {
+        level.currentRows = ROWS;
+    }
+}
+
+// --------------------------------------------------------------------------------
 // Managing saving and loading of user highscore data into a text file
 // --------------------------------------------------------------------------------
-
-void dataLoader(bool load)
-{
-    if (load)
-    {
+void dataLoader(bool load) {
+    if (load) {
         FILE *file = fopen("highscore.txt", "r");
-        if (file)
-        {
+        if (file) {
             float storedHighscore = 0.0f;
-            if (fscanf(file, "%f", &storedHighscore) == 1)
-            {
+            if (fscanf(file, "%f", &storedHighscore) == 1) {
                 player.highscore = storedHighscore;
             }
             fclose(file);
-        }
-        else
-        {
+        } else {
             player.highscore = 0.0f;
         }
     }
-    else
-    {
+    else {
         // SAVE:
         FILE *file = fopen("highscore.txt", "w");
-        if (file)
-        {
+        if (file) {
             fprintf(file, "%.0f\n", player.highscore);
             fclose(file);
         }
     }
 }
 
-//main loop of the game
+// --------------------------------------------------------------------------------
+// Main loop of the game
+// --------------------------------------------------------------------------------
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block kuzushi raylib game build");
     SetTargetFPS(60);
@@ -429,8 +456,10 @@ int main(void) {
             UpdateGame();
             DrawGame();
         }
+
         EndDrawing();
     }
+
     dataLoader(false);
     CloseWindow();
     return 0;
