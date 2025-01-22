@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include "raylib.h"
 
-// --------------------------------------------------------------------------------
-// Window & block definitions
-// --------------------------------------------------------------------------------
 #define SCREEN_WIDTH   1800
 #define SCREEN_HEIGHT  900
 #define ROWS           8
@@ -14,9 +11,6 @@
 #define BLOCK_HEIGHT   30
 #define BLOCK_SPACING  10
 
-// --------------------------------------------------------------------------------
-// Game-state structs
-// --------------------------------------------------------------------------------
 typedef struct {
     float HP;
     float highscore;
@@ -30,11 +24,6 @@ typedef struct {
     Color color;
 } Block;
 
-// --------------------------------------------------------------------------------
-// Global variables
-// --------------------------------------------------------------------------------
-
-// Player data
 static playerDataManager player = {3, 0.0f, 0.0f};
 
 // Blocks array
@@ -115,7 +104,7 @@ void InitializeBlocks(void) {
 }
 
 void GameStarter(void) {
-    player.HP = 9000;
+    player.HP = 5;
     player.currentScore = 0;
     isAlive             = true;
     gameStarted         = true;
