@@ -4,7 +4,7 @@
 
 #define SCREEN_WIDTH   1800
 #define SCREEN_HEIGHT  900
-#define ROWS           40
+#define ROWS           14
 #define COLUMNS        14
 #define MAX_BLOCKS     (ROWS * COLUMNS)
 #define BLOCK_WIDTH    100
@@ -211,7 +211,7 @@ void CheckExtraBallsBlockCollision(int index) {
 }
 
 void levelReset(void) {
-    if (level.currentRows >= ROWS) {
+    if (level.currentRows >= 14) {
         level.currentRows = ROWS;
     }
 }
