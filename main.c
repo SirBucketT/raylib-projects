@@ -4,12 +4,17 @@
 
 #define SCREEN_WIDTH   1800
 #define SCREEN_HEIGHT  900
-#define ROWS           8
-#define COLUMNS        14
+#define ROWS           20
+#define COLUMNS        20
 #define MAX_BLOCKS     (ROWS * COLUMNS)
 #define BLOCK_WIDTH    100
 #define BLOCK_HEIGHT   30
 #define BLOCK_SPACING  10
+
+typedef struct Block {
+    int currentRows; //8;
+    int currentCols; //14;
+} blocksRow;
 
 typedef struct {
     float HP;
@@ -24,45 +29,46 @@ typedef struct {
     Color color;
 } Block;
 
-static playerDataManager player = {3, 0.0f, 0.0f};
+blocksRow level = {2, 14};
+
+playerDataManager player = {3000, 0.0f, 0.0f};
 
 // Blocks array
-static Block blocks[MAX_BLOCKS];
+Block blocks[MAX_BLOCKS];
 
 // Paddle
-static float playerX;
-static float playerY;
-static float movementSpeed = 50.0f;
+float playerX;
+float playerY;
+float movementSpeed = 50.0f;
 
 // Single main ball
-static bool  ball_active = false;
-static float ballX, ballY;
-static float ballSpeedX, ballSpeedY;
-static const float BALL_SPEED  = 10.0f;
-static const float BALL_RADIUS = 8.0f;
+bool  ball_active = false;
+float ballX, ballY;
+float ballSpeedX, ballSpeedY;
+const float BALL_SPEED  = 10.0f;
+const float BALL_RADIUS = 8.0f;
 
 // Control flow
-static bool gameStarted = false;
-static bool isAlive     = true;
-static bool gameWon     = false;
+bool gameStarted = false;
+bool isAlive     = true;
+bool gameWon     = false;
 
 // Konami code
-static const int KONAMI_CODE[] = {
+const int KONAMI_CODE[] = {
     KEY_UP, KEY_UP, KEY_DOWN, KEY_DOWN,
     KEY_LEFT, KEY_RIGHT, KEY_LEFT, KEY_RIGHT,
     KEY_B, KEY_A
 };
-static const int KONAMI_CODE_LENGTH = 10;
-static int konamiIndex = 0;
+const int KONAMI_CODE_LENGTH = 10;
+int konamiIndex = 0;
 
 // 4 extra balls
-static bool  fourBallsSpawned  = false;
-static bool  extraBulletActive[4] = { false, false, false, false };
-static float extraBallX[4];
-static float extraBallY[4];
-static float extraBallSpeedX[4];
-static float extraBallSpeedY[4];
-
+bool  fourBallsSpawned  = false;
+bool  extraBulletActive[4] = { false, false, false, false };
+float extraBallX[4];
+float extraBallY[4];
+float extraBallSpeedX[4];
+float extraBallSpeedY[4];
 
 void GameStarter(void);
 void InitializeGame(void);
@@ -74,8 +80,9 @@ void WinScreen(void);
 void CheckBallBlockCollision(void);
 bool IsAnyKeyPressed(void);
 void Upgrades(void);
+void levelReset(void);
 
-static bool AllBlocksCleared(void) {
+bool AllBlocksCleared(void) {
     for (int i = 0; i < MAX_BLOCKS; i++) {
         if (blocks[i].active) return false;
     }
@@ -84,8 +91,8 @@ static bool AllBlocksCleared(void) {
 
 void InitializeBlocks(void) {
     int blockIndex = 0;
-    for (int row = 0; row < ROWS; row++) {
-        for (int col = 0; col < COLUMNS; col++) {
+    for (int row = 0; row < level.currentRows; row++) {
+        for (int col = 0; col < level.currentCols; col++) {
             if (blockIndex >= MAX_BLOCKS) break;
             blocks[blockIndex].rect.x = col * (BLOCK_WIDTH + BLOCK_SPACING) + 100;
             blocks[blockIndex].rect.y = row * (BLOCK_HEIGHT + BLOCK_SPACING) + 50;
@@ -104,7 +111,6 @@ void InitializeBlocks(void) {
 }
 
 void GameStarter(void) {
-    player.HP = 5;
     player.currentScore = 0;
     isAlive             = true;
     gameStarted         = true;
@@ -187,7 +193,7 @@ void CheckBallBlockCollision(void) {
 // --------------------------------------------------------------------------------
 // each extra ball hits block
 // --------------------------------------------------------------------------------
-static void CheckExtraBallsBlockCollision(int index) {
+void CheckExtraBallsBlockCollision(int index) {
     for (int i = 0; i < MAX_BLOCKS; i++) {
         if (blocks[i].active &&
             CheckCollisionCircleRec((Vector2){extraBallX[index], extraBallY[index]}, BALL_RADIUS, blocks[i].rect)) {
@@ -202,10 +208,15 @@ static void CheckExtraBallsBlockCollision(int index) {
     }
 }
 
+void levelReset(void) {
+    if (level.currentRows >= ROWS) {
+        level.currentRows = ROWS;
+    }
+}
 // --------------------------------------------------------------------------------
 // once player.currentScore >= 4000, spawn 4 extra balls
 // --------------------------------------------------------------------------------
-static void SpawnFourBallsIfNeeded(void) {
+void SpawnFourBallsIfNeeded(void) {
     if (!fourBallsSpawned && player.currentScore >= 4000.0f) {
         for (int i = 0; i < 4; i++) {
             extraBulletActive[i] = true;
@@ -325,28 +336,31 @@ void DrawGame(void) {
 // if all blocks are cleared
 // --------------------------------------------------------------------------------
 void WinScreen(void) {
-    DrawText("YOU WIN!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, GREEN);
-    DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
     if (IsKeyPressed(KEY_Y)) {
+        level.currentRows *= 2;
         GameStarter();
     }
     else if (IsKeyPressed(KEY_N)) {
         CloseWindow();
     }
+
+    DrawText("YOU WIN!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, GREEN);
+    DrawText("GENERATE NEXT LEVEL (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
 }
 
 // --------------------------------------------------------------------------------
-// GameOver - when isAlive == false
+// GameOver when isAlive == false
 // --------------------------------------------------------------------------------
 void GameOver(void) {
-    DrawText("GAME OVER!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, RED);
-    DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
     if (IsKeyPressed(KEY_Y)) {
         GameStarter();
     }
     else if (IsKeyPressed(KEY_N)) {
         CloseWindow();
     }
+
+    DrawText("GAME OVER!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, RED);
+    DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
 }
 //main loop of the game
 int main(void) {
@@ -359,6 +373,25 @@ int main(void) {
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
+
+        /*
+        switch (state) {
+            case MAIN_MENU: {
+                UpdateMenu();
+                DrawMenu();
+            } break;
+            case GAME_RUNNING: {
+                DrawGame();
+            }
+            case GAME_OVER: {
+                GaveOver();
+            }
+            case GAME_WON: {
+                GameWom();
+            }
+        }
+        */
+
         if (!gameStarted) {
             InitializeGame();
         }
@@ -369,6 +402,7 @@ int main(void) {
             WinScreen();
         }
         else {
+            levelReset();
             Upgrades();
             UpdateGame();
             DrawGame();
