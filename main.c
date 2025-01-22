@@ -343,6 +343,7 @@ void WinScreen(void) {
     else if (IsKeyPressed(KEY_N)) {
         CloseWindow();
     }
+    levelReset();
 
     DrawText("YOU WIN!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, GREEN);
     DrawText("GENERATE NEXT LEVEL (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
@@ -374,24 +375,6 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        /*
-        switch (state) {
-            case MAIN_MENU: {
-                UpdateMenu();
-                DrawMenu();
-            } break;
-            case GAME_RUNNING: {
-                DrawGame();
-            }
-            case GAME_OVER: {
-                GaveOver();
-            }
-            case GAME_WON: {
-                GameWom();
-            }
-        }
-        */
-
         if (!gameStarted) {
             InitializeGame();
         }
@@ -402,7 +385,6 @@ int main(void) {
             WinScreen();
         }
         else {
-            levelReset();
             Upgrades();
             UpdateGame();
             DrawGame();
