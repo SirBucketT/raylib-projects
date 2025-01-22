@@ -38,8 +38,8 @@ static float movementSpeed = 50.0f;
 static bool  ball_active = false;
 static float ballX, ballY;
 static float ballSpeedX, ballSpeedY;
-static const float BALL_SPEED  = 10.0f;   // base ball speed
-static const float BALL_RADIUS = 8.0f;    // radius of each ball
+static const float BALL_SPEED  = 10.0f;
+static const float BALL_RADIUS = 8.0f;
 
 // Control flow
 static bool gameStarted = false;
@@ -141,7 +141,7 @@ void InitializeGame(void) {
 }
 
 // --------------------------------------------------------------------------------
-// IsAnyKeyPressed - used for resetting Konami code
+// Konami code checker method
 // --------------------------------------------------------------------------------
 bool IsAnyKeyPressed(void) {
     for (int key = KEY_SPACE; key <= KEY_KP_9; key++) {
@@ -151,13 +151,13 @@ bool IsAnyKeyPressed(void) {
 }
 
 // --------------------------------------------------------------------------------
-// Upgrades - checks Konami code, etc.
+// Upgrades for the konami code - checks Konami code, etc.
 // --------------------------------------------------------------------------------
 void Upgrades(void) {
     if (IsKeyPressed(KONAMI_CODE[konamiIndex])) {
         konamiIndex++;
         if (konamiIndex == KONAMI_CODE_LENGTH) {
-            player.HP = 9001;
+            player.HP += 9001;
             konamiIndex = 0;
         }
     }
@@ -167,7 +167,7 @@ void Upgrades(void) {
 }
 
 // --------------------------------------------------------------------------------
-// CheckBallBlockCollision - main ball hits block
+// main ball hits block
 // --------------------------------------------------------------------------------
 void CheckBallBlockCollision(void) {
     for (int i = 0; i < MAX_BLOCKS; i++) {
@@ -185,7 +185,7 @@ void CheckBallBlockCollision(void) {
 }
 
 // --------------------------------------------------------------------------------
-// CheckExtraBallsBlockCollision - each extra ball hits block
+// each extra ball hits block
 // --------------------------------------------------------------------------------
 static void CheckExtraBallsBlockCollision(int index) {
     for (int i = 0; i < MAX_BLOCKS; i++) {
@@ -203,7 +203,7 @@ static void CheckExtraBallsBlockCollision(int index) {
 }
 
 // --------------------------------------------------------------------------------
-// SpawnFourBallsIfNeeded - once player.currentScore >= 4000, spawn 4 extra balls
+// once player.currentScore >= 4000, spawn 4 extra balls
 // --------------------------------------------------------------------------------
 static void SpawnFourBallsIfNeeded(void) {
     if (!fourBallsSpawned && player.currentScore >= 4000.0f) {
@@ -220,7 +220,7 @@ static void SpawnFourBallsIfNeeded(void) {
 }
 
 // --------------------------------------------------------------------------------
-// UpdateGame - main gameplay logic
+// main gameplay logic
 // --------------------------------------------------------------------------------
 void UpdateGame(void) {
     if (IsKeyPressed(KEY_SPACE) && !ball_active && isAlive) {
@@ -293,7 +293,7 @@ void UpdateGame(void) {
 }
 
 // --------------------------------------------------------------------------------
-// DrawGame - draws all game elements
+//draws all game elements
 // --------------------------------------------------------------------------------
 void DrawGame(void) {
     DrawText(TextFormat("%.0f", player.currentScore),
@@ -322,7 +322,7 @@ void DrawGame(void) {
 }
 
 // --------------------------------------------------------------------------------
-// WinScreen - if all blocks are cleared
+// if all blocks are cleared
 // --------------------------------------------------------------------------------
 void WinScreen(void) {
     DrawText("YOU WIN!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, GREEN);
