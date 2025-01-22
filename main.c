@@ -391,7 +391,7 @@ void DrawGame(void) {
     // Extra balls
     for (int i = 0; i < 4; i++) {
         if (extraBallsActive[i]) {
-            DrawCircle((int)extraBallX[i], (int)extraBallY[i], BALL_RADIUS, WHITE);
+            DrawCircle((int)extraBallX[i], (int)extraBallY[i], BALL_RADIUS, YELLOW);
         }
     }
 
