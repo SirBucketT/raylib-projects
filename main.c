@@ -323,7 +323,7 @@ void GameOver(void) {
 // --------------------------------------------------------------------------------
 int main(void) {
     // Setup
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Single-Ball Block Game (Fixed Game Over)");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block kuzushi raylib game build");
     SetTargetFPS(60);
 
     // Initial positions (overridden in GameStarter anyway)
