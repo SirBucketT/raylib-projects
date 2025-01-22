@@ -17,14 +17,14 @@
 // Game-state structs
 // --------------------------------------------------------------------------------
 typedef struct {
-    float healthPoints;    // number of lives
+    float healthPoints;
     float highscore;
     float currentScore;
-} ScoreData;
+} playerDataManager;
 
 typedef struct {
     Rectangle rect;
-    int health;   // block health: 1..3
+    int health;
     bool active;
     Color color;
 } Block;
@@ -32,7 +32,7 @@ typedef struct {
 // --------------------------------------------------------------------------------
 // Global variables (unchanged names)
 // --------------------------------------------------------------------------------
-static ScoreData player = {3, 0.0f, 0.0f};
+static playerDataManager player = {3, 0.0f, 0.0f};
 static Block blocks[MAX_BLOCKS];
 
 // Paddle
