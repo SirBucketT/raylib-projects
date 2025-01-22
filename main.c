@@ -135,19 +135,18 @@ void GameStarter(void) {
 // InitializeGame - shows "START GAME (Y/N)" if not started
 // --------------------------------------------------------------------------------
 void InitializeGame(void) {
-    if (!gameStarted) {
-        DrawText("START GAME (Y/N)", SCREEN_WIDTH/2 - 250, SCREEN_HEIGHT/2, 50, WHITE);
-        int key = GetKeyPressed();
-        switch (key) {
-            case KEY_Y:
-                GameStarter();
-                break;
-            case KEY_N:
-                CloseWindow();
-                break;
+
+    DrawText("START GAME (Y/N)", SCREEN_WIDTH/2 - 250, SCREEN_HEIGHT/2, 50, WHITE);
+    int key = GetKeyPressed();
+    switch (key) {
+        case KEY_Y:
+            GameStarter();
+        break;
+        case KEY_N:
+            CloseWindow();
+        break;
             default:
-                break;
-        }
+            break;
     }
 }
 
@@ -370,7 +369,6 @@ int main(void) {
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
-
         if (!gameStarted) {
             InitializeGame();
         }
@@ -385,10 +383,8 @@ int main(void) {
             UpdateGame();
             DrawGame();
         }
-
         EndDrawing();
     }
-
     CloseWindow();
     return 0;
 }
