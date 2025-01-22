@@ -81,6 +81,7 @@ void CheckBallBlockCollision(void);
 bool IsAnyKeyPressed(void);
 void Upgrades(void);
 void levelReset(void);
+void dataLoader(bool load);
 
 bool AllBlocksCleared(void) {
     for (int i = 0; i < MAX_BLOCKS; i++) {
@@ -140,6 +141,7 @@ void InitializeGame(void) {
         break;
         case KEY_N:
             CloseWindow();
+            dataLoader(false);
         break;
             default:
             break;
@@ -357,6 +359,7 @@ void GameOver(void) {
         GameStarter();
     }
     else if (IsKeyPressed(KEY_N)) {
+        dataLoader(false);
         CloseWindow();
     }
 
@@ -428,6 +431,7 @@ int main(void) {
         }
         EndDrawing();
     }
+    dataLoader(false);
     CloseWindow();
     return 0;
 }
