@@ -29,6 +29,14 @@ typedef struct {
     float currentScore;
 } playerDataManager;
 
+typedef enum {
+    NOT_STARTED,
+    GAME_OVER,
+    GAME_WIN,
+    GAME_PLAYING
+} GameFlowState;
+
+GameFlowState currentState;
 blocksRow level = {2, 14};
 playerDataManager player = {10, 0.0f, 0.0f};
 
@@ -85,6 +93,26 @@ void levelReset(void);
 void dataLoader(bool load);
 bool AllBlocksCleared(void);
 void SpawnFourBallsIfNeeded(void);
+void GameState(void);
+
+// --------------------------------------------------------------------------------
+// Checking the current state of the game!
+// --------------------------------------------------------------------------------
+
+void GameState(void){
+    if (!gameStarted) {
+        currentState = NOT_STARTED;
+    }
+    else if (!isAlive && !gameWon) {
+        currentState = GAME_OVER;
+    }
+    else if (gameWon) {
+        currentState = GAME_WIN;
+    }
+    else {
+        currentState = GAME_PLAYING;
+    }
+}
 
 // --------------------------------------------------------------------------------
 // CheckBlockCollision - Unified function for both main and extra balls
