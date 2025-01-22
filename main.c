@@ -70,13 +70,6 @@ static float extraBallY[4];
 static float extraBallSpeedX[4];
 static float extraBallSpeedY[4];
 
-// Same constants apply to extra balls
-// We'll treat them all the same size & base speed
-// We'll handle them exactly like the main ball.
-
-// --------------------------------------------------------------------------------
-// Forward declarations (no name changes to existing functions)
-// --------------------------------------------------------------------------------
 void GameStarter(void);
 void InitializeGame(void);
 void InitializeBlocks(void);
