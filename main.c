@@ -414,9 +414,6 @@ void DrawGame(void) {
     }
 }
 
-// --------------------------------------------------------------------------------
-// GameOver - when isAlive == false
-// --------------------------------------------------------------------------------
 void GameOver(void) {
     DrawText("GAME OVER!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, RED);
     DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
@@ -429,9 +426,6 @@ void GameOver(void) {
     }
 }
 
-// --------------------------------------------------------------------------------
-// main() - the game loop
-// --------------------------------------------------------------------------------
 int main(void) {
     // Setup
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block kuzushi raylib game build");
@@ -439,7 +433,7 @@ int main(void) {
 
     playerX = SCREEN_WIDTH / 2.0f;
     playerY = SCREEN_HEIGHT - 150.0f;
-    
+
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
