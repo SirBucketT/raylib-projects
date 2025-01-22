@@ -359,7 +359,7 @@ void GameOver(void) {
         CloseWindow();
     }
 }
-
+//main loop of the game
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block kuzushi raylib game build");
     SetTargetFPS(60);
