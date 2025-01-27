@@ -40,7 +40,7 @@ GameFlowState currentState;
 
 // Global variables
 blocksRow level             = {2, 14};
-playerDataManager player    = {10, 0.0f, 0.0f};
+playerDataManager player    = {1, 0.0f, 0.0f};
 Block blocks[MAX_BLOCKS];
 
 // Paddle
@@ -195,21 +195,42 @@ void GameStarter(void) {
 // ----------------------------------------------------------------------
 //  Displays and waits for user input to start or quit
 // ----------------------------------------------------------------------
-void InitializeGame(void) {
-    DrawText("START GAME (Y/N)", SCREEN_WIDTH/2 - 250, SCREEN_HEIGHT/2, 50, WHITE);
-    int key = GetKeyPressed();
-    switch (key) {
-        case KEY_Y:
-            GameStarter();
-            break;
-        case KEY_N:
-            CloseWindow();
-            dataLoader(false);
-            break;
-        default:
-            break;
+void InitializeGame(void)
+{
+    static int menuOption = 0;
+
+    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
+        menuOption--;
+        if (menuOption < 0) menuOption = 1;
     }
+    else if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
+        menuOption++;
+        if (menuOption > 1) menuOption = 0;
+    }
+
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+        if (menuOption == 0) {
+            GameStarter();
+        }
+        else {
+            dataLoader(false);
+            CloseWindow();
+        }
+    }
+
+    DrawText("Block Kuzushi", SCREEN_WIDTH/2 - 340, SCREEN_HEIGHT/3 - 100, 100, WHITE);
+
+    Color playColor = (menuOption == 0) ? GREEN : GRAY;
+    Color quitColor = (menuOption == 1) ? GREEN : GRAY;
+
+    DrawText("PLAY GAME",
+             SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2,
+             50, playColor);
+    DrawText("QUIT",
+             SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 + 70,
+             50, quitColor);
 }
+
 
 // ----------------------------------------------------------------------
 //  Check for *any* key pressed (for Konami code logic)
@@ -268,26 +289,20 @@ void UpdateGame(void) {
         ballSpeedX  = (GetRandomValue(0, 1) == 0) ? -BALL_SPEED / 2 : BALL_SPEED / 2;
     }
 
-    // Main ball
     if (ball_active) {
         ballX += ballSpeedX;
         ballY += ballSpeedY;
 
-        // Bounce off left/right walls
         if (ballX - BALL_RADIUS <= 0 || ballX + BALL_RADIUS >= SCREEN_WIDTH) {
             ballSpeedX *= -1;
         }
-        // Bounce off top
         if (ballY - BALL_RADIUS <= 0) {
             ballSpeedY *= -1;
         }
-        // If ball hits bottom, lose a life
         if (ballY + BALL_RADIUS >= SCREEN_HEIGHT) {
             ball_active = false;
             player.HP -= 1;
         }
-
-        // Paddle collision
         Rectangle playerRect = { playerX, playerY, SCREEN_WIDTH / 20.0f, SCREEN_HEIGHT / 50.0f };
         if (CheckCollisionCircleRec((Vector2){ballX, ballY}, BALL_RADIUS, playerRect)) {
             ballSpeedY = -BALL_SPEED;
@@ -365,18 +380,15 @@ void UpdateGame(void) {
 //  Draw all game elements
 // ----------------------------------------------------------------------
 void DrawGame(void) {
-    // Score
     DrawText(TextFormat("%.0f", player.currentScore),
              SCREEN_WIDTH/2 - 155, SCREEN_HEIGHT - 100, 50, WHITE);
 
-    // Highscore
     if (player.currentScore > player.highscore) {
         player.highscore = player.currentScore;
     }
     DrawText(TextFormat("Highscore: %.0f", player.highscore),
              SCREEN_WIDTH - 400, SCREEN_HEIGHT - 100, 50, WHITE);
 
-    // Lives
     DrawText(TextFormat("Lives: %.0f", player.HP),
              SCREEN_WIDTH -1700, SCREEN_HEIGHT - 100, 50, WHITE);
 
