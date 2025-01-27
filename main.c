@@ -37,10 +37,11 @@ typedef enum {
 } GameFlowState;
 
 GameFlowState currentState;
+int startHP = 10;
 
 // Global variables
 blocksRow level             = {2, 14};
-playerDataManager player    = {1, 0.0f, 0.0f};
+playerDataManager player    = {10, 0.0f, 0.0f};
 Block blocks[MAX_BLOCKS];
 
 // Paddle
@@ -468,6 +469,7 @@ void GameOver(void)
     {
         if (menuOption == 0)
         {
+            player.HP = startHP;
             GameStarter();
             initialized = false;
         }
