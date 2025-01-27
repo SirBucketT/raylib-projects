@@ -273,7 +273,6 @@ void SpawnFourBallsIfNeeded(void) {
     if (!fourBallsSpawned && player.currentScore >= 4000.0f) {
         for (int i = 0; i < 4; i++) {
             extraBallsActive[i] = true;
-            // Set extra-ball positions to the main ball's current pos (Vector2)
             extraBallX[i]      = ballPos.x;
             extraBallY[i]      = ballPos.y;
 
@@ -289,9 +288,6 @@ void SpawnFourBallsIfNeeded(void) {
 //  Main gameplay logic
 // ----------------------------------------------------------------------
 void UpdateGame(void) {
-    // --------------------------------------------------------------
-    // Frame-time for paddle and main ball (Vector2)
-    // --------------------------------------------------------------
     float dt = GetFrameTime();
 
     // Launch the main ball if space is pressed and ball is not active
