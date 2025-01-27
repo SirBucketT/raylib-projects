@@ -439,17 +439,55 @@ void WinScreen(void) {
 // ----------------------------------------------------------------------
 //  GameOver screen
 // ----------------------------------------------------------------------
-void GameOver(void) {
-    if (IsKeyPressed(KEY_Y)) {
-        GameStarter();
-    }
-    else if (IsKeyPressed(KEY_N)) {
-        dataLoader(false);
-        CloseWindow();
+void GameOver(void)
+{
+    static bool initialized = false;
+    static int menuOption = 0;
+
+    if (!initialized)
+    {
+        menuOption = 0;
+        initialized = true;
     }
 
-    DrawText("GAME OVER!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2, 50, RED);
-    DrawText("RESTART GAME (Y/N)", SCREEN_WIDTH/2 - 300, SCREEN_HEIGHT/2 + 60, 50, WHITE);
+    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
+    {
+        menuOption--;
+        if (menuOption < 0) menuOption = 1;
+    }
+    else if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
+    {
+        menuOption++;
+        if (menuOption > 1) menuOption = 0;
+    }
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+    {
+        if (menuOption == 0)
+        {
+            GameStarter();
+            initialized = false;
+        }
+        else
+        {
+            dataLoader(false); // Save data
+            CloseWindow();
+        }
+    }
+
+    DrawText("GAME OVER!", SCREEN_WIDTH/2 - 150, SCREEN_HEIGHT/2 - 100, 50, RED);
+
+    Color restartColor = (menuOption == 0) ? YELLOW : GRAY;
+    Color quitColor    = (menuOption == 1) ? YELLOW : GRAY;
+
+    DrawText("RESTART GAME",
+             SCREEN_WIDTH/2 - 150,
+             SCREEN_HEIGHT/2,
+             50, restartColor);
+
+    DrawText("QUIT",
+             SCREEN_WIDTH/2 - 150,
+             SCREEN_HEIGHT/2 + 70,
+             50, quitColor);
 }
 
 // ----------------------------------------------------------------------
