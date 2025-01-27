@@ -21,13 +21,13 @@ typedef struct Block {
 typedef struct {
     int currentRows;
     int currentCols;
-} blocksRow;
+} BlocksRow;
 
 typedef struct {
     float HP;
     float highscore;
     float currentScore;
-} playerDataManager;
+} PlayerDataManager;
 
 typedef enum {
     NOT_STARTED,
@@ -36,24 +36,27 @@ typedef enum {
     GAME_PLAYING
 } GameFlowState;
 
+// ----------------------------------------------------------------------
+//  Global variables
+// ----------------------------------------------------------------------
 GameFlowState currentState;
 int startHP = 10;
 
-// Global variables
-blocksRow level             = {2, 14};
-playerDataManager player    = {10, 0.0f, 0.0f};
+// Blocks / Player
+BlocksRow level          = {2, 14};
+PlayerDataManager player = {10, 0.0f, 0.0f};
 Block blocks[MAX_BLOCKS];
 
 // Paddle
 float playerX;
 float playerY;
-float movementSpeed = 50.0f;
+float movementSpeed = 2000.0f;
 
-// Single main ball
-bool  ball_active = false;
-float ballX, ballY;
-float ballSpeedX, ballSpeedY;
-const float BALL_SPEED  = 10.0f;
+// Single main ball (now using Vector2 + bool)
+bool    ball_active = false;
+Vector2 ballPos;
+Vector2 ballSpeed;
+const float BALL_SPEED  = 1000.0f;
 const float BALL_RADIUS = 8.0f;
 
 // Control flow booleans
@@ -70,7 +73,7 @@ const int KONAMI_CODE[] = {
 const int KONAMI_CODE_LENGTH = 10;
 int konamiIndex = 0;
 
-// Extra balls
+// Extra balls (unchanged)
 bool  fourBallsSpawned    = false;
 bool  extraBallsActive[4] = { false, false, false, false };
 float extraBallX[4];
@@ -181,15 +184,16 @@ void GameStarter(void) {
     InitializeBlocks();
     fourBallsSpawned    = false;
 
+    // Paddle positions
     playerX = SCREEN_WIDTH / 2.0f;
     playerY = SCREEN_HEIGHT - 150.0f;
-    ball_active = true;
-    ballX      = playerX + 40.0f;
-    ballY      = playerY - 40.0f;
-    ballSpeedX = BALL_SPEED;
-    ballSpeedY = -BALL_SPEED;
 
-    // deactivate extra bullets
+    // Main ball setup (Vector2)
+    ball_active = true;
+    ballPos     = (Vector2){ playerX + 40.0f, playerY - 40.0f };
+    ballSpeed   = (Vector2){ BALL_SPEED, -BALL_SPEED };
+
+    // Deactivate extra balls
     for (int i = 0; i < 4; i++) extraBallsActive[i] = false;
 }
 
@@ -236,7 +240,6 @@ void InitializeGame(void)
              50, quitColor);
 }
 
-
 // ----------------------------------------------------------------------
 //  Check for *any* key pressed (for Konami code logic)
 // ----------------------------------------------------------------------
@@ -270,8 +273,9 @@ void SpawnFourBallsIfNeeded(void) {
     if (!fourBallsSpawned && player.currentScore >= 4000.0f) {
         for (int i = 0; i < 4; i++) {
             extraBallsActive[i] = true;
-            extraBallX[i]        = ballX;
-            extraBallY[i]        = ballY;
+            // Set extra-ball positions to the main ball's current pos (Vector2)
+            extraBallX[i]      = ballPos.x;
+            extraBallY[i]      = ballPos.y;
 
             float angle = GetRandomValue(0, 359) * DEG2RAD;
             extraBallSpeedX[i] = cosf(angle) * BALL_SPEED;
@@ -285,41 +289,55 @@ void SpawnFourBallsIfNeeded(void) {
 //  Main gameplay logic
 // ----------------------------------------------------------------------
 void UpdateGame(void) {
-    // Launch the ball if space is pressed and ball is not active
+    // --------------------------------------------------------------
+    // Frame-time for paddle and main ball (Vector2)
+    // --------------------------------------------------------------
+    float dt = GetFrameTime();
+
+    // Launch the main ball if space is pressed and ball is not active
     if (IsKeyPressed(KEY_SPACE) && !ball_active && isAlive) {
-        ball_active = true;
-        ballX       = playerX + (SCREEN_WIDTH / 50);
-        ballY       = playerY;
-        ballSpeedY  = -BALL_SPEED;
-        ballSpeedX  = (GetRandomValue(0, 1) == 0) ? -BALL_SPEED / 2 : BALL_SPEED / 2;
+        ball_active   = true;
+        ballPos.x     = playerX + (SCREEN_WIDTH / 50);
+        ballPos.y     = playerY;
+        ballSpeed.y   = -BALL_SPEED;
+        ballSpeed.x   = (GetRandomValue(0, 1) == 0) ? -BALL_SPEED / 2 : BALL_SPEED / 2;
     }
 
+    // Main ball movement
     if (ball_active) {
-        ballX += ballSpeedX;
-        ballY += ballSpeedY;
+        // Update main ball with Vector2 + dt
+        ballPos.x += ballSpeed.x * dt;
+        ballPos.y += ballSpeed.y * dt;
 
-        if (ballX - BALL_RADIUS <= 0 || ballX + BALL_RADIUS >= SCREEN_WIDTH) {
-            ballSpeedX *= -1;
+        // Check left/right walls
+        if (ballPos.x - BALL_RADIUS <= 0 || ballPos.x + BALL_RADIUS >= SCREEN_WIDTH) {
+            ballSpeed.x *= -1.0f;
         }
-        if (ballY - BALL_RADIUS <= 0) {
-            ballSpeedY *= -1;
+        // Check top
+        if (ballPos.y - BALL_RADIUS <= 0) {
+            ballSpeed.y *= -1.0f;
         }
-        if (ballY + BALL_RADIUS >= SCREEN_HEIGHT) {
+        // Check bottom
+        if (ballPos.y + BALL_RADIUS >= SCREEN_HEIGHT) {
             ball_active = false;
             player.HP -= 1;
         }
+
+        // Paddle collision
         Rectangle playerRect = { playerX, playerY, SCREEN_WIDTH / 20.0f, SCREEN_HEIGHT / 50.0f };
-        if (CheckCollisionCircleRec((Vector2){ballX, ballY}, BALL_RADIUS, playerRect)) {
-            ballSpeedY = -BALL_SPEED;
-            float hitPos = (ballX - playerX) / (SCREEN_WIDTH / 20.0f);
-            ballSpeedX   = (hitPos - 0.5f) * BALL_SPEED * 2.0f;
+        if (CheckCollisionCircleRec((Vector2){ ballPos.x, ballPos.y }, BALL_RADIUS, playerRect)) {
+            ballSpeed.y = -BALL_SPEED;
+            float hitPos = (ballPos.x - playerX) / (SCREEN_WIDTH / 20.0f);
+            ballSpeed.x  = (hitPos - 0.5f) * BALL_SPEED * 2.0f;
         }
-        CheckBlockCollision(&ballX, &ballY, BALL_RADIUS, &ballSpeedX, &ballSpeedY);
+
+        // Check block collisions
+        CheckBlockCollision(&ballPos.x, &ballPos.y, BALL_RADIUS, &ballSpeed.x, &ballSpeed.y);
     }
 
     SpawnFourBallsIfNeeded();
 
-    //logic for extra balls
+    // Extra balls logic (unchanged)
     for (int i = 0; i < 4; i++) {
         if (extraBallsActive[i]) {
             extraBallX[i] += extraBallSpeedX[i];
@@ -353,12 +371,12 @@ void UpdateGame(void) {
         }
     }
 
-    // Paddle movement
+    // Paddle movement with dt
     if (IsKeyDown(KEY_A) && playerX > 0) {
-        playerX -= movementSpeed;
+        playerX -= movementSpeed * dt;
     }
     else if (IsKeyDown(KEY_D) && playerX + (SCREEN_WIDTH / 20) < SCREEN_WIDTH) {
-        playerX += movementSpeed;
+        playerX += movementSpeed * dt;
     }
 
     // Check if player is out of lives
@@ -400,9 +418,9 @@ void DrawGame(void) {
     // Paddle
     DrawRectangle((int)playerX, (int)playerY, SCREEN_WIDTH / 20, SCREEN_HEIGHT / 50, WHITE);
 
-    // Main ball
+    // Main ball (Vector2)
     if (ball_active) {
-        DrawCircle((int)ballX, (int)ballY, BALL_RADIUS, WHITE);
+        DrawCircle((int)ballPos.x, (int)ballPos.y, BALL_RADIUS, WHITE);
     }
 
     // Extra balls
@@ -531,10 +549,11 @@ void dataLoader(bool load) {
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Block kuzushi raylib game build");
-    SetTargetFPS(60);
+    SetTargetFPS(9000);
 
     dataLoader(true);
 
+    // Initialize paddle start position
     playerX = SCREEN_WIDTH / 2.0f;
     playerY = SCREEN_HEIGHT - 150.0f;
 
