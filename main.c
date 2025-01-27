@@ -201,11 +201,15 @@ void InitializeGame(void)
 
     if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
         menuOption--;
-        if (menuOption < 0) menuOption = 1;
+        if (menuOption < 0) {
+            menuOption = 1;
+        }
     }
     else if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
         menuOption++;
-        if (menuOption > 1) menuOption = 0;
+        if (menuOption > 1) {
+            menuOption = 0;
+        }
     }
 
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
@@ -469,7 +473,7 @@ void GameOver(void)
         }
         else
         {
-            dataLoader(false); // Save data
+            dataLoader(false);
             CloseWindow();
         }
     }
@@ -532,7 +536,6 @@ int main(void) {
     playerX = SCREEN_WIDTH / 2.0f;
     playerY = SCREEN_HEIGHT - 150.0f;
 
-    // Main loop
     while (!WindowShouldClose())
     {
         GameState();
